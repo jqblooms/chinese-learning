@@ -52,8 +52,8 @@ var CL_TOPICS = Object.freeze({
   y7_greetings: {
     id: 'y7_greetings',
     group: 'Year 7',
-    lesson: 1,
-    title: 'Unit 1: Foundation & Greetings',
+    lesson: 2,
+    title: 'Unit 2: All About Me',
     subtitle: '中文基础与问候 · HSK 1',
     status: 'available',
     words: [

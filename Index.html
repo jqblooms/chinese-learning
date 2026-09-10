@@ -481,7 +481,8 @@
 
     y7_greetings: {
       group: "Year 7",
-      title: "Unit 1: Foundation & Greetings",
+      lesson: 2,
+      title: "Unit 2: All About Me",
       subtitle: "中文基础与问候 · HSK 1",
       words: [
         {id:"zero",      zh:"零",     en:"zero",                py:"líng"},
@@ -2215,7 +2216,7 @@
       perGroup[group] = (perGroup[group] || 0) + 1;
       return {
         id, group,
-        lesson: group === "Tutorial" ? null : perGroup[group],
+        lesson: group === "Tutorial" ? null : (CURRICULUM[id].lesson || perGroup[group]),
         title: CURRICULUM[id].title,
         subtitle: CURRICULUM[id].subtitle,
         status: "available",
