@@ -1026,7 +1026,97 @@
       .replace(/[īíǐì]/g,"i").replace(/[ōóǒò]/g,"o").replace(/[ūúǔù]/g,"u")
       .replace(/[ǖǘǚǜü]/g,"u").replace(/\s+/g," ").trim();
   }
-  function wordSoundText(w){ return w.sound ? w.sound.replaceAll("-"," ") : stripTones(w.py); }
+
+  /* ----- Pronunciation guide generated from pinyin ----- */
+  // English-reader respelling. Not IPA — a "say it roughly like this" hint.
+  const PY_INITIALS = ["zh","ch","sh","b","p","m","f","d","t","n","l","g","k","h","j","q","x","r","z","c","s","y","w"];
+  const PY_INIT_SND = {zh:"j",ch:"ch",sh:"sh",b:"b",p:"p",m:"m",f:"f",d:"d",t:"t",n:"n",l:"l",g:"g",k:"k",h:"h",j:"j",q:"ch",x:"sh",r:"r",z:"dz",c:"ts",s:"s",y:"y",w:"w"};
+  const PY_FIN_SND = {
+    iang:"yahng",iong:"yong",uang:"wahng",ueng:"wung","üan":"wen",van:"wen",
+    iao:"yow",ian:"yen",uai:"why",uan:"wahn",ang:"ahng",eng:"ung",ong:"ong",
+    ing:"eeng","üe":"weh",ün:"ewn",
+    ia:"yah",ie:"yeh",iu:"yoh",in:"een",ua:"wah",uo:"waw",ui:"way",
+    un:"wun",ue:"weh",ve:"weh",vn:"ewn",
+    ai:"eye",ei:"ay",ao:"ow",ou:"oh",an:"ahn",en:"un",er:"ar",
+    a:"ah",o:"aw",e:"uh",i:"ee",u:"oo","ü":"ew",v:"ew"
+  };
+  // match longest final first
+  const PY_FINALS = Object.keys(PY_FIN_SND).sort((a,b)=>b.length-a.length);
+  const PY_BUZZ_INITS = ["zh","ch","sh","r","z","c","s"];
+
+  function splitPinyinSyllables(chunk){
+    const out = [];
+    const isVowel = c => "aeiouü".includes(c);
+    let i = 0;
+    while(i < chunk.length){
+      let init = "";
+      for(const ini of PY_INITIALS){ if(chunk.startsWith(ini, i)){ init = ini; break; } }
+      let j = i + init.length;
+      let fin = "";
+      for(const f of PY_FINALS){ if(chunk.startsWith(f, j)){ fin = f; break; } }
+      let end = j + fin.length;
+      // a trailing n / ng belongs to the next syllable when a vowel follows
+      if(fin.endsWith("ng") && isVowel(chunk[end])){ fin = fin.slice(0,-2); end -= 2; }
+      else if(fin.endsWith("n") && !fin.endsWith("ng") && isVowel(chunk[end])){ fin = fin.slice(0,-1); end -= 1; }
+      if(end <= i) end = i + 1;
+      out.push(chunk.slice(i, end));
+      i = end;
+    }
+    return out;
+  }
+
+  function respellSyllable(s){
+    let init = "";
+    for(const ini of PY_INITIALS){ if(s.startsWith(ini)){ init = ini; break; } }
+    const fin = s.slice(init.length);
+    let finSnd;
+    if(fin === "i" && PY_BUZZ_INITS.includes(init)) finSnd = "r";
+    else if((init === "j" || init === "q" || init === "x" || init === "y") &&
+            (fin === "u" || fin === "un" || fin === "uan" || fin === "ue")){
+      finSnd = {u:"ew", un:"ewn", uan:"wen", ue:"weh"}[fin];
+    }
+    else finSnd = PY_FIN_SND[fin] || fin;
+    return (PY_INIT_SND[init] || init) + finSnd;
+  }
+
+  function pinyinSoundGuide(py){
+    return String(py || "").trim().toLowerCase()
+      .replace(/[āáǎà]/g,"a").replace(/[ēéěè]/g,"e").replace(/[īíǐì]/g,"i")
+      .replace(/[ōóǒò]/g,"o").replace(/[ūúǔù]/g,"u").replace(/[ǖǘǚǜ]/g,"ü")
+      .split(/\s+/).map(g => splitPinyinSyllables(g).map(respellSyllable).join("-")).join(" ")
+      || String(py || "");
+  }
+
+  const TONE_MARK = {"ā":1,"á":2,"ǎ":3,"à":4,"ē":1,"é":2,"ě":3,"è":4,"ī":1,"í":2,"ǐ":3,"ì":4,"ō":1,"ó":2,"ǒ":3,"ò":4,"ū":1,"ú":2,"ǔ":3,"ù":4,"ǖ":1,"ǘ":2,"ǚ":3,"ǜ":4};
+  const TONE_NAME = {1:"high",2:"rising",3:"dipping",4:"falling",5:"light"};
+
+  function pinyinToneNote(py){
+    const raw = String(py || "").trim().toLowerCase();
+    if(!raw) return "";
+    const tones = [];
+    for(const grp of raw.split(/\s+/)){
+      const bare = grp
+        .replace(/[āáǎà]/g,"a").replace(/[ēéěè]/g,"e").replace(/[īíǐì]/g,"i")
+        .replace(/[ōóǒò]/g,"o").replace(/[ūúǔù]/g,"u").replace(/[ǖǘǚǜ]/g,"ü");
+      let pos = 0;
+      for(const s of splitPinyinSyllables(bare)){
+        let t = 5;
+        for(let k = pos; k < pos + s.length; k++){
+          if(TONE_MARK[grp[k]]){ t = TONE_MARK[grp[k]]; break; }
+        }
+        tones.push(t);
+        pos += s.length;
+      }
+    }
+    if(!tones.length) return "";
+    if(tones.length === 1) return TONE_NAME[tones[0]] + (tones[0] === 1 ? ", level tone" : " tone");
+    if(tones.length === 2) return TONE_NAME[tones[0]] + " then " + TONE_NAME[tones[1]];
+    return tones.map(t => TONE_NAME[t]).join(" · ");
+  }
+
+  function wordSound(w){ return w.sound || pinyinSoundGuide(w.py); }
+  function wordNote(w){ return w.note || pinyinToneNote(w.py); }
+  function wordSoundText(w){ return wordSound(w).replaceAll("-"," "); }
 
   const DIRECTIONS = {
     zh_py:{from:"zh",to:"py",label:"Chinese character to Pinyin",short:"汉→拼"},
@@ -1399,7 +1489,7 @@
     }
     els.learnAnswer.hidden = !learnMode;
     els.learnAnswer.textContent = `Answer:  ${w.zh}  ·  ${w.py}  ·  ${w.en}`;
-    els.ukAudio.hidden = !w.sound;
+    els.ukAudio.hidden = false;
     els.roundLabel.textContent = learnMode ? "Learn mode" : "Quiz mode";
     els.modeNote.textContent = learnMode ? "Answer shown. Practice taps do not count." : "3 correct answers per direction.";
     renderChoices();
@@ -2340,7 +2430,7 @@
         <td class="han border-b border-goldsoft px-2 py-2 text-lg font-black">${w.zh}</td>
         <td class="border-b border-goldsoft px-2 py-2">${w.en}</td>
         <td class="border-b border-goldsoft px-2 py-2">${w.py}</td>
-        <td class="border-b border-goldsoft px-2 py-2 text-smoke">${w.sound ? "“"+w.sound+"” · "+w.note : "—"}</td>
+        <td class="border-b border-goldsoft px-2 py-2 text-smoke">${"“"+wordSound(w)+"” · "+wordNote(w)}</td>
       </tr>`).join("");
   }
 

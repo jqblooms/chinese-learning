@@ -2,6 +2,36 @@
 
 Living project doc. Update after every session's changes.
 
+## 2026-09-10 — sound guides for every word (generated from pinyin)
+
+- **Every word in every topic now has a pronunciation guide + tone note.**
+  Previously only `animals` (9 words, bespoke `sound`/`note` fields) showed
+  the "🔤 UK sound guide" button and a real "Sound guide" column; the other
+  ~330 words showed "—" and the button was hidden.
+- New client-only helpers in `Index.html` (near `stripTones`, ~line 1030):
+  - `pinyinSoundGuide(py)` — English-reader respelling. `PY_INIT_SND`
+    (zh→j, q→ch, x→sh, c→ts, z→dz, r→r…) + `PY_FIN_SND` (finals: ang→ahng,
+    ian→yen, iao→yow, ong→ong, ui→way, ü→ew…, derived list sorted
+    longest-first). `splitPinyinSyllables` tokenises a syllable run and
+    reassigns a trailing n/ng to the next syllable before a vowel.
+    `respellSyllable` handles j/q/x/y + u/un/ue → ew/ewn/weh and the
+    buzzed `-i` after zh/ch/sh/r/z/c/s → "r".
+  - `pinyinToneNote(py)` — tone marks ā/á/ǎ/à → high / rising / dipping /
+    falling, unmarked syllable → "light". 1 syllable → "dipping tone" etc.;
+    2 → "X then Y"; 3+ → "X · Y · Z".
+  - `wordSound(w)` / `wordNote(w)` — `w.sound || pinyinSoundGuide(w.py)` and
+    `w.note || pinyinToneNote(w.py)`. Explicit fields still win, so the
+    animals entries are unchanged.
+- Usage sites updated: `renderQuestion` now always shows `#ukAudio`
+  (`els.ukAudio.hidden = false`); `wordSoundText` (used by `speakUKGuide`)
+  goes through `wordSound`; `renderWordList`'s 4th `<td>` shows
+  `"…" · <note>` for every row.
+- Server (`Curriculum.gs`) untouched — `sound`/`note` are client-only and
+  not part of the id|zh|en|py validation set.
+- Pushed + redeployed: deployment
+  `AKfycbxM5ZmyrpPP_PikikX9_yPdDPpFn0Glbt0ki8Ap04MTa-EhWVBeB488KITuDFMlubTw`
+  **@24**.
+
 ## 2026-09-10 — loading no longer changes your mode; default mode is not "mixed"
 
 - **`applyAdoptedState` no longer calls `setMode`.** When late-arriving
