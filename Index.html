@@ -1,0 +1,1634 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#8f1d1d">
+  <title>Chinese Learning</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            paper: "#f6eedb",
+            paperdeep: "#ead9b7",
+            ink: "#201a17",
+            cinnabar: "#9b2c20",
+            cinnabar2: "#7f1d1d",
+            jade: "#315b50",
+            jade2: "#24483f",
+            gold: "#b58a2a",
+            goldsoft: "#d6bd78",
+            plum: "#5f2b3a",
+            smoke: "#6f675f"
+          },
+          boxShadow: {
+            paper: "0 18px 40px rgba(58,38,25,.14)",
+            seal: "0 6px 18px rgba(127,29,29,.18)"
+          },
+          fontFamily: {
+            han: ['"Noto Sans SC"','"Microsoft YaHei"','"PingFang SC"','"Heiti SC"','sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      background:
+        radial-gradient(circle at 16% 0%, rgba(255,255,255,.72), transparent 28rem),
+        linear-gradient(180deg, #f8f1df 0%, #f1e1c2 100%);
+    }
+    button, .fall-char { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible { outline: 3px solid #b58a2a; outline-offset: 2px; }
+    .han { font-family: "Noto Sans SC","Microsoft YaHei","PingFang SC","Heiti SC",sans-serif; }
+    .paper-grain {
+      background-image:
+        linear-gradient(rgba(255,255,255,.22), rgba(255,255,255,.06)),
+        repeating-linear-gradient(0deg, rgba(120,88,46,.025) 0 1px, transparent 1px 4px);
+    }
+    .choice-btn.correct { background:#dcfce7 !important; border-color:#86efac !important; color:#166534 !important; }
+    .choice-btn.wrong   { background:#fee2e2 !important; border-color:#fca5a5 !important; color:#991b1b !important; }
+    .choice-btn.learn-highlight { box-shadow: inset 0 0 0 3px #b58a2a; background:#fff7dc !important; }
+    .mini-card.done { background:#ecfdf5; border-color:#86efac; }
+
+    .fall-field {
+      position: relative; overflow: hidden; touch-action: none; user-select: none;
+      background:
+        linear-gradient(to bottom, rgba(255,255,255,.78), rgba(246,238,219,.9)),
+        repeating-linear-gradient(to right, transparent 0, transparent 79px, rgba(49,91,80,.08) 80px);
+    }
+    .fall-field::after {
+      content:""; position:absolute; left:0; right:0; bottom:0; height:4px;
+      background: linear-gradient(to right, transparent, #9b2c20 15%, #9b2c20 85%, transparent);
+      opacity:.48; pointer-events:none;
+    }
+    .fall-char {
+      position:absolute; left:0; top:0; z-index:3; min-width:58px; min-height:58px;
+      display:flex; align-items:center; justify-content:center; padding:7px 10px;
+      border:2px solid #d6bd78; border-radius:15px; background:#fffaf0;
+      box-shadow:0 8px 18px rgba(32,26,23,.15);
+      font-family:"Noto Sans SC","Microsoft YaHei","PingFang SC","Heiti SC",sans-serif;
+      font-size:clamp(2rem, 6vw, 3.35rem); font-weight:800; line-height:1;
+      cursor:grab; touch-action:none; will-change:transform;
+    }
+    .fall-char:active { cursor:grabbing; }
+    .fall-char.selected { border-color:#9b2c20; box-shadow:0 0 0 4px rgba(155,44,32,.16), 0 10px 20px rgba(32,26,23,.18); }
+    .fall-char.wrong { border-color:#ef4444; background:#fee2e2; }
+    .fall-char.correct { border-color:#22c55e; background:#dcfce7; }
+    .answer-btn.drop-target { border-color:#b58a2a !important; background:#fff7dc !important; transform:translateY(-2px); }
+    .answer-btn.good { background:#dcfce7 !important; border-color:#86efac !important; color:#166534 !important; }
+    .answer-btn.bad  { background:#fee2e2 !important; border-color:#fca5a5 !important; color:#991b1b !important; }
+
+    .tian-grid {
+      position:relative;
+      background:
+        linear-gradient(to right, transparent calc(50% - .5px), rgba(155,44,32,.18) 50%, transparent calc(50% + .5px)),
+        linear-gradient(to bottom, transparent calc(50% - .5px), rgba(155,44,32,.18) 50%, transparent calc(50% + .5px)),
+        linear-gradient(45deg, transparent calc(50% - .5px), rgba(49,91,80,.10) 50%, transparent calc(50% + .5px)),
+        linear-gradient(-45deg, transparent calc(50% - .5px), rgba(49,91,80,.10) 50%, transparent calc(50% + .5px)),
+        #fffaf0;
+    }
+    .tian-grid::before { content:""; position:absolute; inset:10px; border:1px dashed rgba(155,44,32,.20); pointer-events:none; }
+
+    /* App shell */
+    .sidebar-scroll::-webkit-scrollbar { width: 8px; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(155,44,32,.25); border-radius: 99px; }
+    #sidebar { transition: transform .22s ease, width .22s ease; }
+    .topic-btn[aria-current="true"] { background:#9b2c20; color:#fff; border-color:#9b2c20; box-shadow:0 6px 18px rgba(127,29,29,.18); }
+    .topic-btn[aria-current="true"] .topic-sub { color:#fee2e2; }
+    #sidebarScrim { transition: opacity .2s ease; }
+    @media (prefers-reduced-motion: reduce) { * { scroll-behavior:auto !important; transition:none !important; } }
+  </style>
+</head>
+
+<body class="min-h-screen font-sans text-ink">
+  <div class="fixed inset-x-0 top-0 z-50 h-2 bg-cinnabar"></div>
+
+  <div class="pointer-events-none fixed inset-0 overflow-hidden opacity-[0.08]" aria-hidden="true">
+    <svg class="absolute left-[-30px] top-8 h-44 w-72 text-cinnabar" viewBox="0 0 320 180" fill="none">
+      <path d="M22 112c18-25 43-27 62-9 6-33 53-46 74-14 28-28 79-8 78 28 28-6 49 7 58 27H25c-19 0-20-19-3-32Z" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
+      <path d="M68 141h177" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
+    </svg>
+    <svg class="absolute right-[-26px] bottom-8 h-52 w-80 text-jade" viewBox="0 0 320 200" fill="none">
+      <path d="M32 135c22-29 47-29 66-7 11-36 58-44 77-11 26-28 77-14 80 22 21-5 43 7 52 27H39c-20 0-25-18-7-31Z" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
+      <path d="M88 167h154" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
+    </svg>
+  </div>
+
+  <div id="sidebarScrim" class="fixed inset-0 z-30 bg-ink/40 opacity-0 pointer-events-none lg:hidden" aria-hidden="true"></div>
+
+  <div class="relative z-10 flex min-h-screen">
+    <!-- Sidebar -->
+    <aside id="sidebar"
+      class="fixed left-0 top-0 z-40 flex h-screen w-[270px] -translate-x-full flex-col border-r border-goldsoft bg-paper shadow-paper lg:sticky lg:top-0 lg:translate-x-0">
+      <div class="flex items-center gap-2 border-b border-goldsoft px-4 py-4">
+        <svg class="h-8 w-8 shrink-0 text-cinnabar" viewBox="0 0 80 80" aria-hidden="true">
+          <rect x="8" y="8" width="64" height="64" rx="8" fill="currentColor"/>
+          <path d="M24 27h32M24 40h32M24 53h32M31 20v40M49 20v40" stroke="#f6eedb" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <div class="min-w-0">
+          <div class="truncate font-black leading-tight">Chinese Learning</div>
+          <div class="truncate text-xs text-smoke">中文 · Bloomsbury</div>
+        </div>
+        <button id="sidebarClose" type="button" class="ml-auto rounded-lg border border-goldsoft bg-[#fffaf0] p-1.5 lg:hidden" aria-label="Close menu">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <nav id="topicList" class="sidebar-scroll flex-1 space-y-1.5 overflow-y-auto px-3 py-3"></nav>
+
+      <div class="border-t border-goldsoft px-4 py-3 text-xs leading-5 text-smoke">
+        <div id="identityLine">Checking sign-in…</div>
+        <button id="openAdminBtn" type="button" class="mt-2 hidden rounded-lg border border-jade bg-jade px-3 py-1.5 font-black text-white">Teacher view</button>
+      </div>
+    </aside>
+
+    <!-- Main column -->
+    <div class="flex min-w-0 flex-1 flex-col">
+      <header class="sticky top-0 z-20 flex items-center gap-3 border-b border-goldsoft bg-paper/95 px-4 py-3 backdrop-blur">
+        <button id="sidebarOpen" type="button" class="rounded-lg border border-goldsoft bg-[#fffaf0] p-2 lg:hidden" aria-label="Open menu">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="min-w-0">
+          <h1 id="topicTitle" class="truncate text-lg font-black sm:text-xl">Animals</h1>
+          <p id="topicWords" class="truncate text-xs text-smoke sm:text-sm">狗 猫 金鱼 兔子 鸟 蛇 马 熊猫 龙</p>
+        </div>
+        <div id="saveStatus" class="ml-auto hidden shrink-0 items-center gap-1.5 rounded-full border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-xs font-bold text-smoke">
+          <span id="saveDot" class="h-2 w-2 rounded-full bg-smoke"></span>
+          <span id="saveText">Saved on this device</span>
+        </div>
+      </header>
+
+      <!-- Locked-topic panel -->
+      <section id="lockedPanel" class="mx-auto hidden w-[min(680px,92vw)] px-4 py-16 text-center">
+        <div class="mx-auto mb-4 w-fit rounded-full bg-[#fff7dc] p-4 text-4xl">課</div>
+        <h2 id="lockedTitle" class="text-2xl font-black">Coming soon</h2>
+        <p id="lockedText" class="mx-auto mt-2 max-w-md leading-6 text-smoke">This lesson has not been built yet. Lesson 1, Animals, is ready now.</p>
+        <button id="lockedBackBtn" type="button" class="mt-5 rounded-xl bg-cinnabar px-5 py-3 font-black text-white shadow-seal">Go to Animals</button>
+      </section>
+
+      <!-- Animals lesson -->
+      <main id="lessonRoot" class="relative mx-auto w-[min(1120px,94vw)] pb-10 pt-5">
+        <section class="paper-grain mb-4 rounded-2xl border border-goldsoft bg-paper p-3 shadow-paper">
+          <div class="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-smoke">
+            <svg class="h-5 w-5 text-cinnabar" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 12h16M7 7h10M7 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Practice mode
+          </div>
+          <div class="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
+            <button class="modeBtn rounded-xl border border-goldsoft bg-cinnabar px-3 py-3 text-left font-black text-white shadow-seal" data-mode="mixed" type="button">
+              Mixed mastery <span class="mt-1 block text-xs font-semibold text-red-100">All 6 directions</span>
+            </button>
+            <button class="modeBtn rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-3 text-left font-black" data-mode="zhpy" type="button">
+              汉字 ↔ Pinyin <span class="mt-1 block text-xs font-semibold text-smoke">Character and pinyin</span>
+            </button>
+            <button class="modeBtn rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-3 text-left font-black" data-mode="zhen" type="button">
+              汉字 ↔ Meaning <span class="mt-1 block text-xs font-semibold text-smoke">Character and English</span>
+            </button>
+            <button class="modeBtn rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-3 text-left font-black" data-mode="pyen" type="button">
+              Pinyin ↔ Meaning <span class="mt-1 block text-xs font-semibold text-smoke">Pinyin and English</span>
+            </button>
+            <button class="modeBtn rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-3 text-left font-black" data-mode="falling" type="button">
+              Falling characters <span class="mt-1 block text-xs font-semibold text-smoke">汉字 to meaning</span>
+            </button>
+            <button class="modeBtn rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-3 text-left font-black" data-mode="stroke" type="button">
+              Stroke order <span class="mt-1 block text-xs font-semibold text-smoke">Watch and draw</span>
+            </button>
+          </div>
+        </section>
+
+        <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <section class="paper-grain rounded-3xl border border-goldsoft bg-paper p-3 shadow-paper sm:p-5">
+            <div id="standardArea">
+              <div class="mb-3 flex flex-col gap-2 text-sm text-smoke sm:flex-row sm:items-center sm:justify-between">
+                <span id="roundLabel" class="w-fit rounded-full border border-goldsoft bg-[#fffaf0] px-3 py-1.5 font-black text-ink">Quiz mode</span>
+                <span id="modeNote">3 correct answers per direction.</span>
+              </div>
+              <div class="rounded-2xl border border-goldsoft bg-[#fffdf8] p-4 text-center sm:p-6">
+                <div id="direction" class="mb-3 text-xs font-black uppercase tracking-[0.11em] text-smoke"></div>
+                <div id="prompt" class="han text-6xl font-black leading-none sm:text-8xl"></div>
+                <div id="supportLine" class="mt-4 min-h-7 text-sm leading-6 text-smoke"></div>
+                <div class="mt-3 flex flex-wrap justify-center gap-2">
+                  <button id="chineseAudio" type="button" class="rounded-full border border-goldsoft bg-white px-3 py-2 text-sm font-bold">🔊 Chinese</button>
+                  <button id="ukAudio" type="button" class="rounded-full border border-goldsoft bg-white px-3 py-2 text-sm font-bold">🔤 UK sound guide</button>
+                </div>
+                <div id="learnAnswer" class="mt-4 rounded-xl border border-goldsoft bg-[#fff7dc] px-3 py-2 font-black text-[#7b5718]" hidden></div>
+              </div>
+              <div id="feedback" class="flex min-h-[52px] items-center justify-center px-2 pt-2 text-center font-black" aria-live="polite"></div>
+              <div id="choices" class="grid grid-cols-2 gap-2 sm:grid-cols-3"></div>
+            </div>
+
+            <section id="completeArea" class="hidden py-10 text-center">
+              <div class="mx-auto mb-4 w-fit rounded-full bg-[#fff7dc] p-4 text-4xl">福</div>
+              <h2 class="text-2xl font-black sm:text-3xl">Mode complete</h2>
+              <p id="completeText" class="mx-auto mt-2 max-w-xl leading-6 text-smoke"></p>
+              <button id="continueBtn" type="button" class="mt-5 rounded-xl bg-cinnabar px-5 py-3 font-black text-white shadow-seal">Choose another mode</button>
+            </section>
+
+            <section id="fallingArea" class="hidden">
+              <div class="mb-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
+                <div class="rounded-xl border border-goldsoft bg-[#fffaf0] p-2 text-center"><span class="block text-[11px] font-black uppercase tracking-wide text-smoke">Level</span><strong id="fallLevel" class="text-lg">1</strong></div>
+                <div class="rounded-xl border border-goldsoft bg-[#fffaf0] p-2 text-center"><span class="block text-[11px] font-black uppercase tracking-wide text-smoke">Points</span><strong id="fallPoints" class="text-lg">0</strong></div>
+                <div class="rounded-xl border border-goldsoft bg-[#fffaf0] p-2 text-center"><span class="block text-[11px] font-black uppercase tracking-wide text-smoke">High score</span><strong id="fallHighScore" class="text-lg">0</strong></div>
+                <div class="rounded-xl border border-goldsoft bg-[#fffaf0] p-2 text-center"><span class="block text-[11px] font-black uppercase tracking-wide text-smoke">Matches</span><strong id="fallCorrect" class="text-lg">0</strong></div>
+                <div class="rounded-xl border border-goldsoft bg-[#fffaf0] p-2 text-center"><span class="block text-[11px] font-black uppercase tracking-wide text-smoke">Errors</span><strong id="fallErrors" class="text-lg">0</strong></div>
+                <div class="rounded-xl border border-goldsoft bg-[#fffaf0] p-2 text-center"><span class="block text-[11px] font-black uppercase tracking-wide text-smoke">Speed</span><strong id="fallSpeed" class="text-lg">1.00×</strong></div>
+              </div>
+              <div class="mb-2 flex flex-wrap gap-2">
+                <button id="fallStartBtn" type="button" class="rounded-xl bg-cinnabar px-4 py-2.5 font-black text-white shadow-seal">Start</button>
+                <button id="fallPauseBtn" type="button" class="rounded-xl border border-goldsoft bg-[#fffaf0] px-4 py-2.5 font-black disabled:cursor-not-allowed disabled:opacity-40" disabled>Pause</button>
+                <button id="fallNewBtn" type="button" class="rounded-xl border border-goldsoft bg-[#fffaf0] px-4 py-2.5 font-black">New run</button>
+                <button id="fallNextBtn" type="button" class="rounded-xl border border-jade bg-jade px-4 py-2.5 font-black text-white disabled:cursor-not-allowed disabled:opacity-40" disabled>Next level</button>
+              </div>
+              <div id="fallLevelProgressText" class="mb-1 text-sm font-bold text-smoke">Level 2 unlocks at 90 points.</div>
+              <div class="mb-3 h-2 overflow-hidden rounded-full border border-goldsoft bg-[#ead9b7]"><div id="fallLevelProgress" class="h-full bg-jade transition-[width] duration-300" style="width:0%"></div></div>
+              <div id="fallMessage" class="mb-3 min-h-[44px] rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-2 text-center text-sm leading-6 text-smoke" aria-live="polite">Tap Start. Select a character, then its meaning. Dragging works on touch screens.</div>
+              <div id="fallField" class="fall-field h-[360px] rounded-t-2xl border border-goldsoft sm:h-[500px]" aria-label="Falling Chinese characters">
+                <div id="fallStartOverlay" class="absolute inset-0 z-10 flex items-center justify-center bg-[#fffaf0]/80 text-center backdrop-blur-[1px]">
+                  <div>
+                    <svg class="mx-auto mb-3 h-16 w-28 text-cinnabar" viewBox="0 0 140 80" fill="none" aria-hidden="true"><path d="M11 54c9-15 25-17 36-5 5-19 34-25 46-7 15-16 38-9 39 10 11-2 19 3 22 12H16c-10 0-12-6-5-10Z" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg>
+                    <strong class="block text-2xl font-black">Falling Characters</strong>
+                    <span class="mt-1 block text-smoke">汉字 to English meaning</span>
+                  </div>
+                </div>
+              </div>
+              <div class="rounded-b-2xl border border-t-0 border-goldsoft bg-[#efe0c2] p-2">
+                <div class="mb-2 text-center text-[11px] font-black uppercase tracking-[0.08em] text-smoke">Meanings</div>
+                <div id="fallAnswers" class="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9"></div>
+              </div>
+            </section>
+
+            <section id="strokeArea" class="hidden">
+              <div class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div class="text-xs font-black uppercase tracking-[0.1em] text-smoke">Stroke order</div>
+                  <div class="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span id="strokeWord" class="han text-3xl font-black">狗</span>
+                    <span id="strokePinyin" class="font-black text-cinnabar">gǒu</span>
+                    <span id="strokeMeaning" class="text-smoke">dog</span>
+                  </div>
+                </div>
+                <div id="strokeReps" class="w-fit rounded-full border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-sm font-black">0/3 complete</div>
+              </div>
+              <div id="strokeCharTabs" class="mb-3 flex flex-wrap gap-2"></div>
+              <div class="grid gap-4 md:grid-cols-[minmax(260px,360px)_1fr]">
+                <div class="mx-auto w-full max-w-[360px]">
+                  <div id="strokeCanvasWrap" class="tian-grid aspect-square w-full overflow-hidden rounded-2xl border-2 border-cinnabar/50 shadow-inner">
+                    <div id="strokeCanvas" class="h-full w-full"></div>
+                  </div>
+                </div>
+                <div class="flex flex-col justify-center">
+                  <div id="strokeStatus" class="mb-3 min-h-[52px] rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-3 text-center text-sm leading-6 text-smoke" aria-live="polite">Watch the stroke order, then practise drawing it.</div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <button id="strokeWatchBtn" type="button" class="rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-3 font-black">Watch</button>
+                    <button id="strokePracticeBtn" type="button" class="rounded-xl bg-cinnabar px-3 py-3 font-black text-white shadow-seal">Practice</button>
+                    <button id="strokeOutlineBtn" type="button" class="rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-3 font-black">Hide outline</button>
+                    <button id="strokeNextBtn" type="button" class="rounded-xl border border-jade bg-jade px-3 py-3 font-black text-white">Next</button>
+                  </div>
+                  <div class="mt-4 rounded-xl border border-goldsoft bg-[#efe0c2] p-3 text-sm leading-6 text-smoke">
+                    <div>Current character: <strong id="strokeCurrentChar" class="han text-ink">狗</strong></div>
+                    <div>Mistakes this try: <strong id="strokeMistakes" class="text-ink">0</strong></div>
+                    <div>Correct strokes: <strong id="strokeCorrectStrokes" class="text-ink">0</strong></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </section>
+
+          <aside class="paper-grain rounded-3xl border border-goldsoft bg-paper p-4 shadow-paper">
+            <div class="mb-3 flex items-center gap-2">
+              <svg class="h-6 w-6 text-jade" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V9m7 10V5m7 14v-7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+              <h2 class="font-black">Progress</h2>
+              <button id="learnBtn" type="button" class="ml-auto rounded-lg border border-goldsoft bg-[#fffaf0] px-2.5 py-1.5 text-xs font-bold">Learn mode: Off</button>
+            </div>
+            <div class="mb-3 flex flex-wrap gap-2">
+              <button id="speakBtn" type="button" class="rounded-lg border border-goldsoft bg-[#fffaf0] px-2.5 py-1.5 text-xs font-bold">🔊 Speak</button>
+              <button id="resetBtn" type="button" class="rounded-lg border border-goldsoft bg-[#fffaf0] px-2.5 py-1.5 text-xs font-bold">Reset topic</button>
+            </div>
+            <div id="sideMode" class="mb-3 text-sm text-smoke"></div>
+            <div class="h-3 overflow-hidden rounded-full border border-goldsoft bg-[#ead9b7]"><div id="progressFill" class="h-full bg-cinnabar transition-[width] duration-300" style="width:0%"></div></div>
+            <div class="mb-4 mt-2 flex items-end justify-between gap-3">
+              <span id="overallLabel" class="text-sm text-smoke">Completed</span>
+              <strong id="overallValue" class="text-2xl">0/9</strong>
+            </div>
+            <div id="miniList" class="grid max-h-[520px] gap-2 overflow-auto sm:grid-cols-2 lg:grid-cols-1"></div>
+            <p id="sideNote" class="mt-4 text-xs leading-5 text-smoke">Progress saves to your Bloomsbury account when signed in.</p>
+          </aside>
+        </div>
+
+        <details class="paper-grain mt-4 rounded-2xl border border-goldsoft bg-paper p-4 shadow-paper">
+          <summary class="cursor-pointer font-black">Word list</summary>
+          <div class="mt-3 overflow-x-auto">
+            <table class="w-full min-w-[620px] border-collapse text-sm">
+              <thead><tr class="text-left text-xs uppercase tracking-wide text-smoke">
+                <th class="border-b border-goldsoft px-2 py-2">Chinese</th>
+                <th class="border-b border-goldsoft px-2 py-2">English</th>
+                <th class="border-b border-goldsoft px-2 py-2">Pinyin</th>
+                <th class="border-b border-goldsoft px-2 py-2">UK sound guide</th>
+              </tr></thead>
+              <tbody id="wordRows"></tbody>
+            </table>
+          </div>
+        </details>
+      </main>
+    </div>
+  </div>
+
+  <!-- Teacher view -->
+  <div id="adminModal" class="fixed inset-0 z-50 hidden items-start justify-center overflow-y-auto bg-ink/50 p-4">
+    <div class="mx-auto mt-10 w-[min(960px,96vw)] rounded-2xl border border-goldsoft bg-paper p-5 shadow-paper">
+      <div class="mb-3 flex items-center gap-2">
+        <h2 class="text-lg font-black">Teacher view</h2>
+        <button id="adminRefresh" type="button" class="rounded-lg border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-xs font-bold">Refresh</button>
+        <button id="adminClose" type="button" class="ml-auto rounded-lg border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-xs font-bold">Close</button>
+      </div>
+      <div id="adminBody" class="overflow-x-auto text-sm text-smoke">Loading…</div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  "use strict";
+
+  /* ---------------- Server bridge ---------------- */
+  const HAS_BACKEND = typeof google !== "undefined" && google.script && google.script.run;
+
+  function callServer(method, payload) {
+    return new Promise((resolve, reject) => {
+      if (!HAS_BACKEND) { reject(new Error("no-backend")); return; }
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(reject)
+        [method](payload);
+    });
+  }
+
+  /* ---------------- Curriculum (animals) ---------------- */
+  // WORDS must stay identical to CL_TOPICS.animals.words in Curriculum.gs.
+  const WORDS = [
+    {id:"dog",      zh:"狗",   en:"dog",      py:"gǒu",      sound:"goh",         note:"dipping tone"},
+    {id:"cat",      zh:"猫",   en:"cat",      py:"māo",      sound:"maow",        note:"high, level tone"},
+    {id:"goldfish", zh:"金鱼", en:"goldfish", py:"jīnyú",    sound:"jeen-yoo",    note:"high then rising"},
+    {id:"rabbit",   zh:"兔子", en:"rabbit",   py:"tùzi",     sound:"too-dzuh",    note:"falling then light"},
+    {id:"bird",     zh:"鸟",   en:"bird",     py:"niǎo",     sound:"nee-ow",      note:"dipping tone"},
+    {id:"snake",    zh:"蛇",   en:"snake",    py:"shé",      sound:"shuh",        note:"rising tone"},
+    {id:"horse",    zh:"马",   en:"horse",    py:"mǎ",       sound:"mah",         note:"dipping tone"},
+    {id:"panda",    zh:"熊猫", en:"panda",    py:"xióngmāo", sound:"shyong-maow", note:"rising then high"},
+    {id:"dragon",   zh:"龙",   en:"dragon",   py:"lóng",     sound:"long",        note:"rising tone"}
+  ];
+
+  const ACTIVE_TOPIC = "animals";
+  const TARGET = 3;
+  const STORE_KEY = "chineseLearning:v1:" + ACTIVE_TOPIC;
+
+  const DIRECTIONS = {
+    zh_py:{from:"zh",to:"py",label:"Chinese character to Pinyin",short:"汉→拼"},
+    py_zh:{from:"py",to:"zh",label:"Pinyin to Chinese character",short:"拼→汉"},
+    zh_en:{from:"zh",to:"en",label:"Chinese character to English meaning",short:"汉→英"},
+    en_zh:{from:"en",to:"zh",label:"English meaning to Chinese character",short:"英→汉"},
+    py_en:{from:"py",to:"en",label:"Pinyin to English meaning",short:"拼→英"},
+    en_py:{from:"en",to:"py",label:"English meaning to Pinyin",short:"英→拼"}
+  };
+
+  const MODES = {
+    mixed:{name:"Mixed mastery",desc:"All 6 directions",dirs:["zh_py","py_zh","zh_en","en_zh","py_en","en_py"]},
+    zhpy:{name:"汉字 ↔ Pinyin",desc:"Character and pinyin",dirs:["zh_py","py_zh"]},
+    zhen:{name:"汉字 ↔ Meaning",desc:"Character and English meaning",dirs:["zh_en","en_zh"]},
+    pyen:{name:"Pinyin ↔ Meaning",desc:"Pinyin and English meaning",dirs:["py_en","en_py"]},
+    falling:{name:"Falling characters",desc:"汉字 to English meaning",dirs:[]},
+    stroke:{name:"Stroke order",desc:"Watch and draw",dirs:[]}
+  };
+
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+
+  const els = {
+    learnBtn:$("#learnBtn"), speakBtn:$("#speakBtn"), resetBtn:$("#resetBtn"),
+    modeBtns:$$(".modeBtn"),
+    standardArea:$("#standardArea"), completeArea:$("#completeArea"),
+    fallingArea:$("#fallingArea"), strokeArea:$("#strokeArea"),
+    roundLabel:$("#roundLabel"), modeNote:$("#modeNote"), direction:$("#direction"),
+    prompt:$("#prompt"), supportLine:$("#supportLine"), learnAnswer:$("#learnAnswer"),
+    feedback:$("#feedback"), choices:$("#choices"),
+    chineseAudio:$("#chineseAudio"), ukAudio:$("#ukAudio"),
+    continueBtn:$("#continueBtn"), completeText:$("#completeText"),
+    sideMode:$("#sideMode"), progressFill:$("#progressFill"),
+    overallLabel:$("#overallLabel"), overallValue:$("#overallValue"),
+    miniList:$("#miniList"), sideNote:$("#sideNote"), wordRows:$("#wordRows"),
+    topicTitle:$("#topicTitle"), topicWords:$("#topicWords"),
+    saveStatus:$("#saveStatus"), saveDot:$("#saveDot"), saveText:$("#saveText"),
+    identityLine:$("#identityLine"), topicList:$("#topicList"),
+    lessonRoot:$("#lessonRoot"), lockedPanel:$("#lockedPanel"),
+    lockedTitle:$("#lockedTitle"), lockedText:$("#lockedText"), lockedBackBtn:$("#lockedBackBtn"),
+    sidebar:$("#sidebar"), sidebarScrim:$("#sidebarScrim"),
+    sidebarOpen:$("#sidebarOpen"), sidebarClose:$("#sidebarClose"),
+    openAdminBtn:$("#openAdminBtn"), adminModal:$("#adminModal"),
+    adminBody:$("#adminBody"), adminClose:$("#adminClose"), adminRefresh:$("#adminRefresh"),
+    fallLevel:$("#fallLevel"), fallPoints:$("#fallPoints"), fallHighScore:$("#fallHighScore"),
+    fallCorrect:$("#fallCorrect"), fallErrors:$("#fallErrors"), fallSpeed:$("#fallSpeed"),
+    fallStartBtn:$("#fallStartBtn"), fallPauseBtn:$("#fallPauseBtn"),
+    fallNewBtn:$("#fallNewBtn"), fallNextBtn:$("#fallNextBtn"),
+    fallLevelProgressText:$("#fallLevelProgressText"), fallLevelProgress:$("#fallLevelProgress"),
+    fallMessage:$("#fallMessage"), fallField:$("#fallField"),
+    fallStartOverlay:$("#fallStartOverlay"), fallAnswers:$("#fallAnswers"),
+    strokeWord:$("#strokeWord"), strokePinyin:$("#strokePinyin"), strokeMeaning:$("#strokeMeaning"),
+    strokeReps:$("#strokeReps"), strokeCharTabs:$("#strokeCharTabs"),
+    strokeCanvasWrap:$("#strokeCanvasWrap"), strokeCanvas:$("#strokeCanvas"),
+    strokeStatus:$("#strokeStatus"), strokeWatchBtn:$("#strokeWatchBtn"),
+    strokePracticeBtn:$("#strokePracticeBtn"), strokeOutlineBtn:$("#strokeOutlineBtn"),
+    strokeNextBtn:$("#strokeNextBtn"), strokeCurrentChar:$("#strokeCurrentChar"),
+    strokeMistakes:$("#strokeMistakes"), strokeCorrectStrokes:$("#strokeCorrectStrokes")
+  };
+
+  const ALL_STROKE_CHARS = [...new Set(WORDS.flatMap(w => Array.from(w.zh)))];
+  const CHAR_TO_WORD = {};
+  WORDS.forEach(w => Array.from(w.zh).forEach(c => { if(!CHAR_TO_WORD[c]) CHAR_TO_WORD[c] = w.id; }));
+
+  function blankScores(){
+    const all = {};
+    for(const w of WORDS){
+      all[w.id] = {};
+      for(const d of Object.keys(DIRECTIONS)) all[w.id][d] = 0;
+      all[w.id].wrong = 0;
+    }
+    return all;
+  }
+  function blankFallingStats(){
+    return {
+      highScore:0, bestLevel:1,
+      totalCorrect:Object.fromEntries(WORDS.map(w => [w.id,0])),
+      totalWrong:Object.fromEntries(WORDS.map(w => [w.id,0]))
+    };
+  }
+  function blankStrokeStats(){
+    return {
+      reps:Object.fromEntries(ALL_STROKE_CHARS.map(c => [c,0])),
+      mistakes:Object.fromEntries(ALL_STROKE_CHARS.map(c => [c,0]))
+    };
+  }
+  function blankState(){
+    return {
+      scores:blankScores(), attempts:0, correct:0, lastMode:"mixed",
+      falling:blankFallingStats(), stroke:blankStrokeStats(), updatedAt:0
+    };
+  }
+
+  function coerceState(raw){
+    const base = blankState();
+    if(!raw || typeof raw !== "object") return base;
+    for(const w of WORDS){
+      const old = raw.scores?.[w.id] || {};
+      for(const d of Object.keys(DIRECTIONS)){
+        base.scores[w.id][d] = Math.max(0,Math.min(TARGET,Number(old[d])||0));
+      }
+      base.scores[w.id].wrong = Math.max(0,Number(old.wrong)||0);
+    }
+    base.attempts = Math.max(0,Number(raw.attempts)||0);
+    base.correct = Math.max(0,Number(raw.correct)||0);
+    base.lastMode = MODES[raw.lastMode] ? raw.lastMode : "mixed";
+    if(raw.falling){
+      base.falling.highScore = Math.max(0,Number(raw.falling.highScore)||0);
+      base.falling.bestLevel = Math.max(1,Number(raw.falling.bestLevel)||1);
+      for(const w of WORDS){
+        base.falling.totalCorrect[w.id] = Math.max(0,Number(raw.falling.totalCorrect?.[w.id])||0);
+        base.falling.totalWrong[w.id] = Math.max(0,Number(raw.falling.totalWrong?.[w.id])||0);
+      }
+    }
+    if(raw.stroke){
+      for(const c of ALL_STROKE_CHARS){
+        base.stroke.reps[c] = Math.max(0,Math.min(TARGET,Number(raw.stroke.reps?.[c])||0));
+        base.stroke.mistakes[c] = Math.max(0,Number(raw.stroke.mistakes?.[c])||0);
+      }
+    }
+    base.updatedAt = Number(raw.updatedAt)||0;
+    return base;
+  }
+
+  function loadState(){
+    try{
+      return coerceState(JSON.parse(localStorage.getItem(STORE_KEY)));
+    }catch{
+      return blankState();
+    }
+  }
+
+  let state = loadState();
+  let currentMode = state.lastMode;
+  let learnMode = false;
+  let current = null;
+  let locked = false;
+  let recentPairs = [];
+
+  function saveState(){
+    state.lastMode = currentMode;
+    state.updatedAt = Date.now();
+    try{ localStorage.setItem(STORE_KEY,JSON.stringify(state)); }catch{}
+    SYNC.mastery();
+  }
+
+  /* ---------------- Sync layer ---------------- */
+  const SYNC = (() => {
+    let signedIn = false;
+    let queue = [];
+    let flushTimer = null;
+    let inFlight = false;
+
+    function setSignedIn(v){ signedIn = v; }
+
+    function setStatus(kind){
+      if(!signedIn){
+        els.saveStatus.classList.remove("hidden");
+        els.saveStatus.classList.add("flex");
+        els.saveDot.className = "h-2 w-2 rounded-full bg-smoke";
+        els.saveText.textContent = "Saved on this device only";
+        return;
+      }
+      els.saveStatus.classList.remove("hidden");
+      els.saveStatus.classList.add("flex");
+      if(kind === "saving"){
+        els.saveDot.className = "h-2 w-2 rounded-full bg-gold animate-pulse";
+        els.saveText.textContent = "Saving…";
+      }else if(kind === "error"){
+        els.saveDot.className = "h-2 w-2 rounded-full bg-cinnabar";
+        els.saveText.textContent = "Will retry saving";
+      }else{
+        els.saveDot.className = "h-2 w-2 rounded-full bg-jade";
+        els.saveText.textContent = "Saved to your account";
+      }
+    }
+
+    function attempt(rec){
+      if(!signedIn) return;
+      queue.push({
+        mode: rec.mode,
+        direction: rec.direction || "",
+        wordId: rec.wordId,
+        answer: String(rec.answer == null ? "" : rec.answer).slice(0,200),
+        chosenId: rec.chosenId || "",
+        clientCorrect: rec.correct === true,
+        elapsedMs: Math.max(0, Number(rec.elapsedMs) || 0)
+      });
+      schedule(600);
+    }
+
+    function mastery(){
+      if(!signedIn) return;
+      schedule(1200);
+    }
+
+    function schedule(delay){
+      clearTimeout(flushTimer);
+      flushTimer = setTimeout(flush, delay);
+    }
+
+    function flush(){
+      if(!signedIn || inFlight) return;
+      const batch = queue.splice(0, 80);
+      const payload = {
+        topic: ACTIVE_TOPIC,
+        attempts: batch,
+        mastery: state
+      };
+      inFlight = true;
+      setStatus("saving");
+      callServer("syncChineseProgress", payload)
+        .then(() => {
+          inFlight = false;
+          setStatus("saved");
+          if(queue.length) schedule(400);
+        })
+        .catch(() => {
+          inFlight = false;
+          queue = batch.concat(queue);   // put the batch back for a later retry
+          setStatus("error");
+          schedule(4000);
+        });
+    }
+
+    window.addEventListener("beforeunload", () => {
+      if(signedIn && (queue.length || true)) {
+        try { flush(); } catch(e) {}
+      }
+    });
+
+    return { setSignedIn, setStatus, attempt, mastery, flush };
+  })();
+
+  function getValue(w,type){
+    if(type === "zh") return w.zh;
+    if(type === "py") return w.py;
+    return w.en;
+  }
+  function modeDirs(){ return MODES[currentMode].dirs; }
+  function isDoneForMode(w){
+    if(currentMode === "falling" || currentMode === "stroke") return false;
+    return modeDirs().every(d => state.scores[w.id][d] >= TARGET);
+  }
+  function totalDoneForMode(){
+    if(currentMode === "falling" || currentMode === "stroke") return 0;
+    return WORDS.filter(isDoneForMode).length;
+  }
+  function dots(n){ return Array.from({length:TARGET},(_,i)=>i<n?"●":"○").join(""); }
+
+  function weightedChoice(items){
+    const weights = items.map(x => {
+      const score = state.scores[x.id][x.dir];
+      const remaining = Math.max(1,TARGET-score);
+      const wrongBoost = Math.min(4,state.scores[x.id].wrong*.35);
+      const recentPenalty = recentPairs.includes(x.id+":"+x.dir) ? .3 : 1;
+      return Math.max(.18,(remaining*1.8 + 1 + wrongBoost) * recentPenalty);
+    });
+    const sum = weights.reduce((a,b)=>a+b,0);
+    let r = Math.random()*sum;
+    for(let i=0;i<items.length;i++){
+      r -= weights[i];
+      if(r <= 0) return items[i];
+    }
+    return items[items.length-1];
+  }
+
+  let questionShownAt = 0;
+
+  function chooseNext(){
+    if(currentMode === "falling" || currentMode === "stroke") return;
+    const candidates = [];
+    for(const w of WORDS){
+      for(const d of modeDirs()){
+        if(state.scores[w.id][d] < TARGET) candidates.push({id:w.id,dir:d});
+      }
+    }
+    if(!candidates.length){ showComplete(); return; }
+    const chosen = weightedChoice(candidates);
+    current = {word:WORDS.find(w=>w.id===chosen.id),dir:chosen.dir};
+    recentPairs.push(chosen.id+":"+chosen.dir);
+    if(recentPairs.length > 6) recentPairs.shift();
+    locked = false;
+    renderQuestion();
+  }
+
+  function renderQuestion(){
+    const d = DIRECTIONS[current.dir];
+    const w = current.word;
+    questionShownAt = Date.now();
+    els.feedback.textContent = "";
+    els.feedback.className = "flex min-h-[52px] items-center justify-center px-2 pt-2 text-center font-black";
+    els.direction.textContent = d.label;
+    els.prompt.textContent = getValue(w,d.from);
+    els.prompt.className = d.from === "zh"
+      ? "han text-6xl font-black leading-none sm:text-8xl"
+      : "text-4xl font-black leading-tight sm:text-6xl";
+    if(d.from === "zh"){
+      els.supportLine.textContent = d.to === "py" ? "Choose the pinyin." : "Choose the English meaning.";
+    }else if(d.from === "py"){
+      els.supportLine.textContent = "Tone marks are part of the answer.";
+    }else{
+      els.supportLine.textContent = d.to === "zh" ? "Choose the Chinese character." : "Choose the pinyin.";
+    }
+    els.learnAnswer.hidden = !learnMode;
+    els.learnAnswer.textContent = `Answer: ${getValue(w,d.to)}   ${w.zh}   ${w.py}   ${w.en}`;
+    els.roundLabel.textContent = learnMode ? "Learn mode" : "Quiz mode";
+    els.modeNote.textContent = learnMode ? "Answer shown. Practice taps do not count." : "3 correct answers per direction.";
+    renderChoices();
+    updateProgress();
+  }
+
+  function renderChoices(){
+    const d = DIRECTIONS[current.dir];
+    els.choices.innerHTML = "";
+    WORDS.forEach(w => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "choice-btn min-h-[64px] rounded-xl border border-goldsoft bg-[#fffaf0] px-2 py-2 font-black transition";
+      if(d.to === "zh") b.classList.add("han","text-2xl");
+      if(d.to === "py") b.classList.add("text-lg");
+      b.textContent = getValue(w,d.to);
+      if(learnMode && w.id === current.word.id) b.classList.add("learn-highlight");
+      b.addEventListener("click",()=>answerStandard(w.id,b));
+      els.choices.appendChild(b);
+    });
+  }
+
+  function answerStandard(id,b){
+    if(locked) return;
+    const w = current.word;
+    const d = DIRECTIONS[current.dir];
+    const correct = id === w.id;
+
+    if(learnMode){
+      if(correct){
+        els.feedback.textContent = `✓ ${w.zh}   ${w.py}   ${w.en}`;
+        els.feedback.className += " text-green-700";
+        locked = true;
+        setTimeout(()=>{ locked=false; chooseNext(); },800);
+      }else{
+        els.feedback.textContent = `Choose ${getValue(w,d.to)}.`;
+        els.feedback.className += " text-red-700";
+      }
+      return;
+    }
+
+    state.attempts++;
+    SYNC.attempt({
+      mode:"standard", direction:current.dir, wordId:w.id,
+      answer:getValue(w,d.to), chosenId:id, correct,
+      elapsedMs: questionShownAt ? Date.now()-questionShownAt : 0
+    });
+
+    if(correct){
+      state.correct++;
+      state.scores[w.id][current.dir] = Math.min(TARGET,state.scores[w.id][current.dir]+1);
+      state.scores[w.id].wrong = Math.max(0,state.scores[w.id].wrong-1);
+      locked = true;
+      b.classList.add("correct");
+      const n = state.scores[w.id][current.dir];
+      els.feedback.textContent = isDoneForMode(w) ? `✓ ${w.zh}   ${w.py}   ${w.en}` : `✓ ${n}/${TARGET}`;
+      els.feedback.className += " text-green-700";
+      saveState();
+      updateProgress();
+      setTimeout(()=>chooseNext(),isDoneForMode(w) ? 950 : 700);
+    }else{
+      state.scores[w.id].wrong++;
+      b.classList.add("wrong");
+      els.feedback.textContent = "Try again.";
+      els.feedback.className += " text-red-700";
+      saveState();
+      setTimeout(()=>b.classList.remove("wrong"),450);
+    }
+  }
+
+  function showComplete(){
+    els.standardArea.classList.add("hidden");
+    els.completeArea.classList.remove("hidden");
+    els.completeText.textContent = `${MODES[currentMode].name} is complete for all 9 words.`;
+    updateProgress();
+  }
+
+  function setMode(mode){
+    if(!MODES[mode]) return;
+    if(currentMode === "falling") stopFalling(false);
+    if(currentMode === "stroke") cancelStrokeQuiz();
+    currentMode = mode;
+    recentPairs = [];
+
+    els.modeBtns.forEach(b => {
+      const selected = b.dataset.mode === mode;
+      b.classList.toggle("bg-cinnabar",selected);
+      b.classList.toggle("text-white",selected);
+      b.classList.toggle("shadow-seal",selected);
+      b.classList.toggle("bg-[#fffaf0]",!selected);
+      const s = b.querySelector("span");
+      if(s){
+        s.classList.toggle("text-red-100",selected);
+        s.classList.toggle("text-smoke",!selected);
+      }
+    });
+
+    els.completeArea.classList.add("hidden");
+    els.standardArea.classList.add("hidden");
+    els.fallingArea.classList.add("hidden");
+    els.strokeArea.classList.add("hidden");
+
+    const special = mode === "falling" || mode === "stroke";
+    els.learnBtn.disabled = special;
+    els.speakBtn.disabled = special;
+    els.learnBtn.classList.toggle("opacity-40",special);
+    els.learnBtn.classList.toggle("cursor-not-allowed",special);
+    els.speakBtn.classList.toggle("opacity-40",special);
+    els.speakBtn.classList.toggle("cursor-not-allowed",special);
+
+    if(mode === "falling"){
+      els.fallingArea.classList.remove("hidden");
+      renderFallingAnswers();
+      resetFallingRun(false);
+      updateFallingHud();
+    }else if(mode === "stroke"){
+      els.strokeArea.classList.remove("hidden");
+      openStrokeWord(stroke.wordIndex,stroke.charIndex);
+    }else{
+      els.standardArea.classList.remove("hidden");
+      updateProgress();
+      chooseNext();
+    }
+    saveState();
+  }
+
+  function updateProgress(){
+    if(currentMode === "falling"){
+      els.sideMode.textContent = "Falling characters";
+      els.overallLabel.textContent = "Best level";
+      els.overallValue.textContent = String(state.falling.bestLevel);
+      els.progressFill.style.width = `${Math.min(100,state.falling.bestLevel/12*100)}%`;
+      els.sideNote.textContent = "Counts show total correct falling matches.";
+      els.miniList.innerHTML = "";
+      for(const w of WORDS){
+        const good = state.falling.totalCorrect[w.id] || 0;
+        const bad = state.falling.totalWrong[w.id] || 0;
+        const card = document.createElement("div");
+        card.className = "mini-card rounded-xl border border-goldsoft bg-[#fffaf0] p-2";
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2"><span class="han text-xl font-black">${w.zh}</span><span class="text-xs text-smoke">${w.en}</span></div>
+            <span class="rounded-full bg-[#ead9b7] px-2 py-1 text-xs font-black">${good}</span>
+          </div>
+          <div class="mt-1 text-[11px] text-smoke">Errors ${bad}</div>`;
+        els.miniList.appendChild(card);
+      }
+      return;
+    }
+    if(currentMode === "stroke"){
+      const completedWords = WORDS.filter(strokeWordDone).length;
+      els.sideMode.textContent = "Stroke order";
+      els.overallLabel.textContent = "Completed";
+      els.overallValue.textContent = `${completedWords}/9`;
+      els.progressFill.style.width = `${completedWords/WORDS.length*100}%`;
+      els.sideNote.textContent = "Each character needs 3 completed drawings.";
+      els.miniList.innerHTML = "";
+      for(const w of WORDS){
+        const chars = Array.from(w.zh);
+        const minRep = Math.min(...chars.map(c=>state.stroke.reps[c]||0));
+        const mistakes = chars.reduce((sum,c)=>sum+(state.stroke.mistakes[c]||0),0);
+        const done = strokeWordDone(w);
+        const card = document.createElement("div");
+        card.className = "mini-card rounded-xl border border-goldsoft bg-[#fffaf0] p-2" + (done ? " done" : "");
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2"><span class="han text-xl font-black">${w.zh}</span><span class="text-xs text-smoke">${w.en}</span></div>
+            <span class="font-black text-green-700">${done ? "✓" : ""}</span>
+          </div>
+          <div class="mt-2 flex items-center justify-between gap-2 text-[11px] text-smoke"><span>${dots(minRep)}</span><span>Mistakes ${mistakes}</span></div>`;
+        els.miniList.appendChild(card);
+      }
+      return;
+    }
+    const done = totalDoneForMode();
+    els.sideMode.textContent = `${MODES[currentMode].name} · ${MODES[currentMode].desc}`;
+    els.overallLabel.textContent = "Completed";
+    els.overallValue.textContent = `${done}/9`;
+    els.progressFill.style.width = `${done/WORDS.length*100}%`;
+    els.sideNote.textContent = HAS_BACKEND
+      ? "Progress saves to your Bloomsbury account when signed in."
+      : "Progress saves in this browser.";
+    els.miniList.innerHTML = "";
+    for(const w of WORDS){
+      const card = document.createElement("div");
+      card.className = "mini-card rounded-xl border border-goldsoft bg-[#fffaf0] p-2" + (isDoneForMode(w) ? " done" : "");
+      const tickHtml = modeDirs().map(d =>
+        `<span class="rounded-lg bg-[#efe0c2] px-1.5 py-1 text-center text-[11px] text-smoke">${DIRECTIONS[d].short} ${dots(state.scores[w.id][d])}</span>`
+      ).join("");
+      card.innerHTML = `
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex min-w-0 items-center gap-2"><span class="han text-xl font-black">${w.zh}</span><span class="truncate text-xs text-smoke">${w.en}</span></div>
+          <span class="font-black text-green-700">${isDoneForMode(w) ? "✓" : ""}</span>
+        </div>
+        <div class="mt-2 grid grid-cols-2 gap-1">${tickHtml}</div>`;
+      els.miniList.appendChild(card);
+    }
+  }
+
+  /* ---------------- Speech ---------------- */
+  function speak(text,lang,rate=.9){
+    if(!("speechSynthesis" in window)){ els.feedback.textContent = "Speech is unavailable in this browser."; return; }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang; u.rate = rate;
+    const voices = speechSynthesis.getVoices();
+    const prefix = lang.toLowerCase().slice(0,2);
+    u.voice = voices.find(v=>v.lang.toLowerCase()===lang.toLowerCase())
+      || voices.find(v=>v.lang.toLowerCase().startsWith(prefix)) || null;
+    speechSynthesis.speak(u);
+  }
+  function speakChinese(){ if(current) speak(current.word.zh,"zh-CN",.78); }
+  function speakUKGuide(){ if(current) speak(current.word.sound.replaceAll("-"," "),"en-GB",.8); }
+  function speakPrompt(){
+    if(!current || currentMode === "falling" || currentMode === "stroke") return;
+    const from = DIRECTIONS[current.dir].from;
+    if(from === "zh" || from === "py") speakChinese();
+    else speak(current.word.en,"en-GB",.9);
+  }
+
+  function toggleLearn(){
+    if(currentMode === "falling" || currentMode === "stroke") return;
+    learnMode = !learnMode;
+    els.learnBtn.textContent = `Learn mode: ${learnMode ? "On" : "Off"}`;
+    els.learnBtn.classList.toggle("ring-2",learnMode);
+    els.learnBtn.classList.toggle("ring-gold",learnMode);
+    if(current) renderQuestion();
+  }
+
+  function resetEverything(){
+    if(!confirm("Reset your progress for the Animals topic?")) return;
+    stopFalling(false);
+    cancelStrokeQuiz();
+    state = blankState();
+    saveState();
+    if(currentMode === "falling"){ resetFallingRun(false); }
+    else if(currentMode === "stroke"){ openStrokeWord(0,0); }
+    else{
+      els.completeArea.classList.add("hidden");
+      els.standardArea.classList.remove("hidden");
+      updateProgress();
+      chooseNext();
+    }
+  }
+
+  /* ---------------- Falling characters ---------------- */
+  const fall = {
+    running:false, paused:false, level:1, points:0, correct:0, errors:0, penalty:0,
+    elapsedMs:0, lastFrame:0, lastSpawn:0, scoreRemainder:0, selectedId:null,
+    chars:new Map(), nextId:1, animationId:null, drag:null
+  };
+
+  function levelThreshold(level){ if(level <= 1) return 0; return Math.round(90 * Math.pow(level-1,1.58)); }
+  function levelBaseSpeed(level){ return .78 + .16 * Math.pow(level-1,1.12); }
+  function timeBoost(){ return 1 + Math.min(.50,fall.elapsedMs/120000*.50); }
+  function speedMultiplier(){ return levelBaseSpeed(fall.level) * timeBoost() * (1 + fall.penalty); }
+  function spawnInterval(){
+    const base = Math.max(680,1850-(fall.level-1)*105);
+    return Math.max(520,base/timeBoost()/(1+fall.penalty*.55));
+  }
+  function fallPixelsPerSecond(){ return 42 * speedMultiplier(); }
+  function pointsForCorrect(){ return 14 + fall.level*3; }
+
+  function renderFallingAnswers(){
+    els.fallAnswers.innerHTML = "";
+    for(const w of WORDS){
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "answer-btn min-h-[48px] rounded-xl border border-goldsoft bg-[#fffaf0] px-2 py-2 text-sm font-black transition";
+      b.textContent = w.en;
+      b.dataset.id = w.id;
+      b.addEventListener("click",()=>answerFalling(w.id,b));
+      els.fallAnswers.appendChild(b);
+    }
+  }
+
+  function resetFallingRun(keepLevel=false){
+    stopFalling(false);
+    if(!keepLevel) fall.level = 1;
+    fall.points = 0; fall.correct = 0; fall.errors = 0; fall.penalty = 0;
+    fall.elapsedMs = 0; fall.lastFrame = 0; fall.lastSpawn = 0; fall.scoreRemainder = 0;
+    fall.selectedId = null; fall.nextId = 1; fall.drag = null;
+    clearFallingChars();
+    els.fallStartOverlay.classList.remove("hidden");
+    els.fallStartOverlay.querySelector("strong").textContent = "Falling Characters";
+    els.fallStartOverlay.querySelector("span").textContent = "汉字 to English meaning";
+    els.fallStartBtn.disabled = false;
+    els.fallPauseBtn.disabled = true;
+    els.fallPauseBtn.textContent = "Pause";
+    els.fallNextBtn.disabled = true;
+    setFallMessage("Tap Start. Select a character, then its meaning. Dragging works on touch screens.","");
+    updateFallingHud();
+    updateProgress();
+  }
+
+  function clearFallingChars(){
+    for(const obj of fall.chars.values()) obj.el.remove();
+    fall.chars.clear();
+  }
+
+  function startFalling(){
+    if(fall.running && !fall.paused) return;
+    if(!fall.running){
+      fall.running = true; fall.paused = false;
+      fall.lastFrame = performance.now();
+      fall.lastSpawn = fall.lastFrame - spawnInterval()*.7;
+      els.fallStartOverlay.classList.add("hidden");
+      els.fallStartBtn.disabled = true;
+      els.fallPauseBtn.disabled = false;
+      setFallMessage("Match the falling characters.","");
+      fall.animationId = requestAnimationFrame(fallLoop);
+    }else if(fall.paused){
+      fall.paused = false;
+      fall.lastFrame = performance.now();
+      els.fallPauseBtn.textContent = "Pause";
+      els.fallStartOverlay.classList.add("hidden");
+      fall.animationId = requestAnimationFrame(fallLoop);
+    }
+  }
+
+  function pauseFalling(){
+    if(!fall.running) return;
+    if(!fall.paused){
+      fall.paused = true;
+      if(fall.animationId) cancelAnimationFrame(fall.animationId);
+      fall.animationId = null;
+      els.fallPauseBtn.textContent = "Resume";
+      els.fallStartOverlay.classList.remove("hidden");
+      els.fallStartOverlay.querySelector("strong").textContent = "Paused";
+      els.fallStartOverlay.querySelector("span").textContent = `Level ${fall.level}`;
+    }else{
+      els.fallStartOverlay.querySelector("strong").textContent = "Falling Characters";
+      els.fallStartOverlay.querySelector("span").textContent = "汉字 to English meaning";
+      startFalling();
+    }
+  }
+
+  function stopFalling(showOverlay=true){
+    if(fall.animationId) cancelAnimationFrame(fall.animationId);
+    fall.animationId = null;
+    fall.running = false;
+    fall.paused = false;
+    if(showOverlay) els.fallStartOverlay.classList.remove("hidden");
+  }
+
+  function newFallingRun(){ resetFallingRun(false); }
+
+  function fallLoop(now){
+    if(!fall.running || fall.paused) return;
+    const dt = Math.min(50,now-fall.lastFrame);
+    fall.lastFrame = now;
+    fall.elapsedMs += dt;
+    fall.scoreRemainder += dt/1000 * (1.2 + fall.level*.22);
+    if(fall.scoreRemainder >= 1){
+      const add = Math.floor(fall.scoreRemainder);
+      fall.points += add;
+      fall.scoreRemainder -= add;
+    }
+    if(now-fall.lastSpawn >= spawnInterval()){
+      spawnFallingChar();
+      fall.lastSpawn = now;
+    }
+    const dy = fallPixelsPerSecond() * dt/1000;
+    const fieldH = els.fallField.clientHeight;
+    for(const [id,obj] of [...fall.chars]){
+      if(!obj.dragging){
+        obj.y += dy;
+        obj.el.style.transform = `translate(${obj.x}px,${obj.y}px)`;
+      }
+      if(!obj.dragging && obj.y > fieldH + 12){
+        registerFallingMiss(obj.word,"missed");
+        removeFallingChar(id);
+      }
+    }
+    updateFallingHud();
+    fall.animationId = requestAnimationFrame(fallLoop);
+  }
+
+  function spawnFallingChar(){
+    if(fall.chars.size >= Math.min(7,2+fall.level)) return;
+    const word = WORDS[Math.floor(Math.random()*WORDS.length)];
+    const id = fall.nextId++;
+    const el = document.createElement("div");
+    el.className = "fall-char";
+    el.textContent = word.zh;
+    el.dataset.fallId = String(id);
+    el.dataset.wordId = word.id;
+    els.fallField.appendChild(el);
+    const width = Math.max(62,el.getBoundingClientRect().width);
+    const maxX = Math.max(4,els.fallField.clientWidth-width-4);
+    const x = 4 + Math.random()*maxX;
+    const y = -Math.max(64,el.getBoundingClientRect().height+10);
+    const obj = {id,word,el,x,y,dragging:false};
+    fall.chars.set(id,obj);
+    el.style.transform = `translate(${x}px,${y}px)`;
+    el.addEventListener("pointerdown",e=>startCharPointer(e,obj));
+    el.addEventListener("pointermove",e=>moveCharPointer(e,obj));
+    el.addEventListener("pointerup",e=>endCharPointer(e,obj));
+    el.addEventListener("pointercancel",e=>endCharPointer(e,obj));
+  }
+
+  function selectFallingChar(id){
+    fall.selectedId = id;
+    for(const obj of fall.chars.values()){
+      obj.el.classList.toggle("selected",obj.id===id);
+    }
+  }
+
+  function startCharPointer(e,obj){
+    e.preventDefault();
+    selectFallingChar(obj.id);
+    const rect = obj.el.getBoundingClientRect();
+    fall.drag = {
+      id:obj.id, pointerId:e.pointerId,
+      startX:e.clientX, startY:e.clientY,
+      offsetX:e.clientX-rect.left, offsetY:e.clientY-rect.top,
+      originalX:obj.x, originalY:obj.y, moved:false
+    };
+    obj.dragging = true;
+    try{ obj.el.setPointerCapture(e.pointerId); }catch{}
+  }
+
+  function moveCharPointer(e,obj){
+    if(!fall.drag || fall.drag.id !== obj.id || fall.drag.pointerId !== e.pointerId) return;
+    e.preventDefault();
+    const dist = Math.hypot(e.clientX-fall.drag.startX,e.clientY-fall.drag.startY);
+    if(dist > 6) fall.drag.moved = true;
+    if(!fall.drag.moved) return;
+    const fieldRect = els.fallField.getBoundingClientRect();
+    obj.x = e.clientX-fieldRect.left-fall.drag.offsetX;
+    obj.y = e.clientY-fieldRect.top-fall.drag.offsetY;
+    obj.el.style.transform = `translate(${obj.x}px,${obj.y}px)`;
+    highlightDropTarget(e.clientX,e.clientY);
+  }
+
+  function endCharPointer(e,obj){
+    if(!fall.drag || fall.drag.id !== obj.id || fall.drag.pointerId !== e.pointerId) return;
+    const drag = fall.drag;
+    fall.drag = null;
+    obj.dragging = false;
+    clearDropTargets();
+    if(drag.moved){
+      const answer = answerAtPoint(e.clientX,e.clientY);
+      if(answer){
+        answerFalling(answer.dataset.id,answer,obj.id);
+        return;
+      }
+      obj.x = Math.max(0,Math.min(els.fallField.clientWidth-obj.el.offsetWidth,drag.originalX));
+      obj.y = Math.max(-obj.el.offsetHeight,drag.originalY);
+      obj.el.style.transform = `translate(${obj.x}px,${obj.y}px)`;
+    }
+  }
+
+  function answerAtPoint(x,y){
+    const node = document.elementFromPoint(x,y);
+    return node?.closest?.(".answer-btn") || null;
+  }
+  function highlightDropTarget(x,y){
+    clearDropTargets();
+    const b = answerAtPoint(x,y);
+    if(b) b.classList.add("drop-target");
+  }
+  function clearDropTargets(){ $$(".answer-btn").forEach(b=>b.classList.remove("drop-target")); }
+
+  function answerFalling(wordId,button,forcedCharId=null){
+    if(!fall.running || fall.paused) return;
+    const selectedId = forcedCharId ?? fall.selectedId;
+    const obj = fall.chars.get(Number(selectedId));
+    if(!obj){ setFallMessage("Select a falling character first.",""); return; }
+    const correct = obj.word.id === wordId;
+
+    SYNC.attempt({ mode:"falling", direction:"zh_en", wordId:obj.word.id, answer:button.textContent, correct });
+
+    if(correct){
+      fall.correct++;
+      fall.points += pointsForCorrect();
+      state.falling.totalCorrect[obj.word.id] = (state.falling.totalCorrect[obj.word.id]||0)+1;
+      button.classList.add("good");
+      obj.el.classList.add("correct");
+      setFallMessage(`${obj.word.zh}  ${obj.word.en}`,"good");
+      const id = obj.id;
+      setTimeout(()=>removeFallingChar(id),120);
+      setTimeout(()=>button.classList.remove("good"),350);
+    }else{
+      fall.errors++;
+      fall.penalty = Math.min(1.15,fall.penalty+.09);
+      state.falling.totalWrong[obj.word.id] = (state.falling.totalWrong[obj.word.id]||0)+1;
+      button.classList.add("bad");
+      obj.el.classList.add("wrong");
+      setFallMessage("Try another meaning. Speed increased.","bad");
+      setTimeout(()=>{ button.classList.remove("bad"); obj.el.classList.remove("wrong"); },420);
+    }
+    updateHighScore();
+    saveState();
+    updateFallingHud();
+    updateProgress();
+  }
+
+  function registerFallingMiss(word){
+    fall.errors++;
+    fall.penalty = Math.min(1.15,fall.penalty+.06);
+    state.falling.totalWrong[word.id] = (state.falling.totalWrong[word.id]||0)+1;
+    setFallMessage(`${word.zh} was missed. Speed increased.`,"bad");
+    saveState();
+  }
+
+  function removeFallingChar(id){
+    const obj = fall.chars.get(Number(id));
+    if(!obj) return;
+    obj.el.remove();
+    fall.chars.delete(Number(id));
+    if(fall.selectedId === Number(id)) fall.selectedId = null;
+  }
+
+  function updateHighScore(){
+    if(fall.points > state.falling.highScore) state.falling.highScore = fall.points;
+    if(fall.level > state.falling.bestLevel) state.falling.bestLevel = fall.level;
+  }
+
+  function updateFallingHud(){
+    updateHighScore();
+    els.fallLevel.textContent = fall.level;
+    els.fallPoints.textContent = Math.floor(fall.points);
+    els.fallHighScore.textContent = Math.floor(state.falling.highScore);
+    els.fallCorrect.textContent = fall.correct;
+    els.fallErrors.textContent = fall.errors;
+    els.fallSpeed.textContent = `${speedMultiplier().toFixed(2)}×`;
+    const currentThreshold = levelThreshold(fall.level);
+    const nextThreshold = levelThreshold(fall.level+1);
+    const span = Math.max(1,nextThreshold-currentThreshold);
+    const progress = Math.max(0,Math.min(1,(fall.points-currentThreshold)/span));
+    els.fallLevelProgress.style.width = `${progress*100}%`;
+    if(fall.points >= nextThreshold){
+      els.fallNextBtn.disabled = false;
+      els.fallLevelProgressText.textContent = `Level ${fall.level+1} ready.`;
+    }else{
+      els.fallNextBtn.disabled = true;
+      els.fallLevelProgressText.textContent = `Level ${fall.level+1} unlocks at ${nextThreshold} points.`;
+    }
+  }
+
+  function nextFallingLevel(){
+    const needed = levelThreshold(fall.level+1);
+    if(fall.points < needed) return;
+    fall.level++;
+    fall.penalty *= .45;
+    state.falling.bestLevel = Math.max(state.falling.bestLevel,fall.level);
+    setFallMessage(`Level ${fall.level}`,"good");
+    updateFallingHud();
+    updateProgress();
+    saveState();
+  }
+
+  function setFallMessage(text,type){
+    els.fallMessage.textContent = text;
+    els.fallMessage.className = "mb-3 min-h-[44px] rounded-xl border px-3 py-2 text-center text-sm leading-6";
+    if(type === "good") els.fallMessage.className += " border-green-300 bg-green-50 font-black text-green-700";
+    else if(type === "bad") els.fallMessage.className += " border-red-300 bg-red-50 font-black text-red-700";
+    else els.fallMessage.className += " border-goldsoft bg-[#fffaf0] text-smoke";
+  }
+
+  /* ---------------- Stroke order ---------------- */
+  const stroke = {
+    wordIndex:0, charIndex:0, writer:null, showOutline:true,
+    quizRunning:false, mistakesThisTry:0, correctStrokesThisTry:0
+  };
+
+  function strokeWordDone(word){
+    return Array.from(word.zh).every(c => (state.stroke.reps[c]||0) >= TARGET);
+  }
+  function activeStrokeWord(){ return WORDS[stroke.wordIndex]; }
+  function activeStrokeChar(){
+    const chars = Array.from(activeStrokeWord().zh);
+    return chars[Math.min(stroke.charIndex,chars.length-1)];
+  }
+  function cancelStrokeQuiz(){
+    if(stroke.writer && stroke.quizRunning){
+      try{ stroke.writer.cancelQuiz(); }catch{}
+    }
+    stroke.quizRunning = false;
+  }
+  function openStrokeWord(wordIndex,charIndex=0){
+    stroke.wordIndex = (wordIndex + WORDS.length) % WORDS.length;
+    const chars = Array.from(activeStrokeWord().zh);
+    stroke.charIndex = Math.max(0,Math.min(charIndex,chars.length-1));
+    renderStrokeHeader();
+    renderStrokeWriter();
+    updateProgress();
+  }
+
+  function renderStrokeHeader(){
+    const w = activeStrokeWord();
+    const chars = Array.from(w.zh);
+    const c = activeStrokeChar();
+    els.strokeWord.textContent = w.zh;
+    els.strokePinyin.textContent = w.py;
+    els.strokeMeaning.textContent = w.en;
+    els.strokeCurrentChar.textContent = c;
+    els.strokeReps.textContent = `${state.stroke.reps[c]||0}/${TARGET} complete`;
+    els.strokeMistakes.textContent = "0";
+    els.strokeCorrectStrokes.textContent = "0";
+    els.strokeCharTabs.innerHTML = "";
+    chars.forEach((char,i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "han rounded-xl border px-4 py-2 text-xl font-black";
+      b.className += (i === stroke.charIndex)
+        ? " border-cinnabar bg-cinnabar text-white shadow-seal"
+        : " border-goldsoft bg-[#fffaf0]";
+      b.textContent = char;
+      b.addEventListener("click",()=>openStrokeWord(stroke.wordIndex,i));
+      els.strokeCharTabs.appendChild(b);
+    });
+  }
+
+  function renderStrokeWriter(){
+    cancelStrokeQuiz();
+    els.strokeCanvas.innerHTML = "";
+    stroke.writer = null;
+    stroke.mistakesThisTry = 0;
+    stroke.correctStrokesThisTry = 0;
+    const c = activeStrokeChar();
+    els.strokeStatus.textContent = "Watch the stroke order, then practise drawing it.";
+    if(typeof HanziWriter === "undefined"){
+      els.strokeStatus.textContent = "Stroke practice needs an internet connection to load the writing library.";
+      return;
+    }
+    const rect = els.strokeCanvasWrap.getBoundingClientRect();
+    const size = Math.max(220,Math.min(350,Math.floor(rect.width || 300)));
+    els.strokeCanvas.style.width = size+"px";
+    els.strokeCanvas.style.height = size+"px";
+    els.strokeCanvas.style.margin = "0 auto";
+    try{
+      stroke.writer = HanziWriter.create("strokeCanvas",c,{
+        width:size, height:size, padding:18,
+        showCharacter:false, showOutline:stroke.showOutline,
+        strokeColor:"#201a17", outlineColor:"#d8c8aa",
+        radicalColor:"#315b50", highlightColor:"#9b2c20",
+        drawingColor:"#9b2c20", drawingWidth:5,
+        strokeAnimationSpeed:1.1, delayBetweenStrokes:260,
+        showHintAfterMisses:2, highlightOnComplete:true, highlightCompleteColor:"#315b50",
+        onLoadCharDataSuccess:()=>{ els.strokeStatus.textContent = "Ready."; },
+        onLoadCharDataError:()=>{ els.strokeStatus.textContent = "Character data could not load. Check the internet connection."; }
+      });
+    }catch{
+      els.strokeStatus.textContent = "Stroke practice could not start.";
+    }
+  }
+
+  function watchStroke(){
+    if(!stroke.writer) return;
+    cancelStrokeQuiz();
+    els.strokeStatus.textContent = "Watch the strokes.";
+    try{
+      stroke.writer.animateCharacter({ onComplete:()=>{ els.strokeStatus.textContent = "Ready to practise."; } });
+    }catch{}
+  }
+
+  function practiceStroke(){
+    if(!stroke.writer) return;
+    cancelStrokeQuiz();
+    stroke.quizRunning = true;
+    stroke.mistakesThisTry = 0;
+    stroke.correctStrokesThisTry = 0;
+    els.strokeMistakes.textContent = "0";
+    els.strokeCorrectStrokes.textContent = "0";
+    els.strokeStatus.textContent = "Draw the character in stroke order.";
+    try{
+      stroke.writer.quiz({
+        showHintAfterMisses:2,
+        onMistake:data=>{
+          stroke.mistakesThisTry = data.totalMistakes;
+          els.strokeMistakes.textContent = stroke.mistakesThisTry;
+          els.strokeStatus.textContent = "Try that stroke again.";
+        },
+        onCorrectStroke:data=>{
+          stroke.correctStrokesThisTry++;
+          els.strokeCorrectStrokes.textContent = stroke.correctStrokesThisTry;
+          els.strokeStatus.textContent = `${data.strokesRemaining} strokes left.`;
+        },
+        onComplete:data=>{
+          stroke.quizRunning = false;
+          const c = activeStrokeChar();
+          state.stroke.reps[c] = Math.min(TARGET,(state.stroke.reps[c]||0)+1);
+          state.stroke.mistakes[c] = (state.stroke.mistakes[c]||0) + (data.totalMistakes||0);
+          els.strokeReps.textContent = `${state.stroke.reps[c]}/${TARGET} complete`;
+          els.strokeStatus.textContent = data.totalMistakes
+            ? `Complete with ${data.totalMistakes} mistakes.`
+            : "Complete with no mistakes.";
+          SYNC.attempt({
+            mode:"stroke", direction:"", wordId:CHAR_TO_WORD[c] || activeStrokeWord().id,
+            answer:`char ${c} · ${data.totalMistakes||0} mistakes`, correct:true
+          });
+          saveState();
+          updateProgress();
+        }
+      });
+    }catch{
+      els.strokeStatus.textContent = "Practice could not start.";
+    }
+  }
+
+  function toggleStrokeOutline(){
+    stroke.showOutline = !stroke.showOutline;
+    els.strokeOutlineBtn.textContent = stroke.showOutline ? "Hide outline" : "Show outline";
+    renderStrokeWriter();
+  }
+
+  function nextStrokeItem(){
+    const chars = Array.from(activeStrokeWord().zh);
+    if(stroke.charIndex < chars.length-1) openStrokeWord(stroke.wordIndex,stroke.charIndex+1);
+    else openStrokeWord((stroke.wordIndex+1)%WORDS.length,0);
+  }
+
+  let resizeTimer = null;
+  window.addEventListener("resize",()=>{
+    if(currentMode !== "stroke") return;
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(renderStrokeWriter,180);
+  });
+
+  /* ---------------- Sidebar / topics ---------------- */
+  const FALLBACK_TOPICS = [
+    {id:"animals",lesson:1,title:"Animals",subtitle:"动物",status:"available",wordCount:9},
+    {id:"numbers",lesson:2,title:"Numbers 1-10",subtitle:"数字",status:"coming-soon",wordCount:0},
+    {id:"colours",lesson:3,title:"Colours",subtitle:"颜色",status:"coming-soon",wordCount:0},
+    {id:"family",lesson:4,title:"Family",subtitle:"家庭",status:"coming-soon",wordCount:0},
+    {id:"food",lesson:5,title:"Food & drink",subtitle:"食物",status:"coming-soon",wordCount:0},
+    {id:"classroom",lesson:6,title:"Classroom",subtitle:"教室",status:"coming-soon",wordCount:0}
+  ];
+
+  function renderTopics(topics){
+    els.topicList.innerHTML = "";
+    topics.forEach(t => {
+      const available = t.status === "available";
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "topic-btn w-full rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-2.5 text-left transition";
+      if(!available) b.className += " opacity-60";
+      b.setAttribute("aria-current", String(available && t.id === ACTIVE_TOPIC));
+      b.innerHTML = `
+        <div class="flex items-center gap-2">
+          <span class="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-[#efe0c2] text-[11px] font-black text-ink">${t.lesson}</span>
+          <span class="min-w-0">
+            <span class="block truncate font-black leading-tight">${t.title}</span>
+            <span class="topic-sub block truncate text-[11px] text-smoke">${available ? (t.wordCount + " words") : "Coming soon"} · ${t.subtitle||""}</span>
+          </span>
+        </div>`;
+      b.dataset.topicId = t.id;
+      b.addEventListener("click",()=>selectTopic(t, available));
+      els.topicList.appendChild(b);
+    });
+  }
+
+  function markCurrentTopic(id){
+    $$("#topicList .topic-btn").forEach(b => {
+      b.setAttribute("aria-current", String(b.dataset.topicId === id));
+    });
+  }
+
+  function selectTopic(topic, available){
+    closeSidebar();
+    if(available && topic.id === ACTIVE_TOPIC){
+      markCurrentTopic(ACTIVE_TOPIC);
+      els.lockedPanel.classList.add("hidden");
+      els.lessonRoot.classList.remove("hidden");
+      els.topicTitle.textContent = "Animals";
+      els.topicWords.textContent = "狗 猫 金鱼 兔子 鸟 蛇 马 熊猫 龙";
+      return;
+    }
+    markCurrentTopic(topic.id);
+    els.lessonRoot.classList.add("hidden");
+    els.lockedPanel.classList.remove("hidden");
+    els.lockedTitle.textContent = topic.title;
+    els.lockedText.textContent = "This lesson has not been built yet. Lesson 1, Animals, is ready now.";
+    els.topicTitle.textContent = topic.title;
+    els.topicWords.textContent = topic.subtitle || "";
+  }
+
+  function openSidebar(){
+    els.sidebar.classList.remove("-translate-x-full");
+    els.sidebarScrim.classList.remove("opacity-0","pointer-events-none");
+    els.sidebarScrim.classList.add("opacity-100");
+  }
+  function closeSidebar(){
+    if(window.matchMedia("(min-width: 1024px)").matches) return;
+    els.sidebar.classList.add("-translate-x-full");
+    els.sidebarScrim.classList.add("opacity-0","pointer-events-none");
+    els.sidebarScrim.classList.remove("opacity-100");
+  }
+
+  /* ---------------- Teacher view ---------------- */
+  function openAdmin(){
+    els.adminModal.classList.remove("hidden");
+    els.adminModal.classList.add("flex");
+    loadAdmin();
+  }
+  function closeAdmin(){
+    els.adminModal.classList.add("hidden");
+    els.adminModal.classList.remove("flex");
+  }
+  function loadAdmin(){
+    els.adminBody.textContent = "Loading…";
+    callServer("getChineseAdminData")
+      .then(data => renderAdmin(data))
+      .catch(err => { els.adminBody.textContent = "Could not load: " + (err && err.message || err); });
+  }
+  function renderAdmin(data){
+    const students = data.students || {};
+    const emails = Object.keys(students).sort();
+    if(!emails.length){ els.adminBody.textContent = "No student progress recorded yet."; return; }
+    const rows = emails.map(email => {
+      const a = (students[email] && students[email].animals && students[email].animals.data) || {};
+      const scores = a.scores || {};
+      let mastered = 0;
+      WORDS.forEach(w => {
+        const s = scores[w.id] || {};
+        if(Object.keys(DIRECTIONS).every(d => (s[d]||0) >= TARGET)) mastered++;
+      });
+      const fallCorrect = a.falling ? Object.values(a.falling.totalCorrect||{}).reduce((x,y)=>x+y,0) : 0;
+      const strokeDone = a.stroke ? ALL_STROKE_CHARS.filter(c => (a.stroke.reps?.[c]||0) >= TARGET).length : 0;
+      return `<tr class="border-b border-goldsoft">
+        <td class="px-2 py-1.5 font-bold text-ink">${email}</td>
+        <td class="px-2 py-1.5 text-center">${mastered}/9</td>
+        <td class="px-2 py-1.5 text-center">${a.correct||0}/${a.attempts||0}</td>
+        <td class="px-2 py-1.5 text-center">${fallCorrect}</td>
+        <td class="px-2 py-1.5 text-center">${strokeDone}/${ALL_STROKE_CHARS.length}</td>
+      </tr>`;
+    }).join("");
+    els.adminBody.innerHTML = `
+      <table class="w-full min-w-[560px] border-collapse text-sm">
+        <thead><tr class="text-left text-xs uppercase tracking-wide text-smoke">
+          <th class="px-2 py-2">Student</th>
+          <th class="px-2 py-2 text-center">Words mastered</th>
+          <th class="px-2 py-2 text-center">Quiz correct</th>
+          <th class="px-2 py-2 text-center">Falling matches</th>
+          <th class="px-2 py-2 text-center">Stroke chars</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <p class="mt-3 text-xs text-smoke">Animals topic. ${emails.length} student${emails.length===1?"":"s"} with saved progress.</p>`;
+  }
+
+  /* ---------------- Identity / bootstrap ---------------- */
+  function applyIdentity(data){
+    const email = data && data.currentUser ? data.currentUser : "";
+    SYNC.setSignedIn(!!email);
+    if(email){
+      els.identityLine.textContent = "Signed in: " + email.split("@")[0];
+      if(data.isTeacher){
+        els.openAdminBtn.classList.remove("hidden");
+      }
+    }else{
+      els.identityLine.textContent = HAS_BACKEND
+        ? "Not signed in. Progress is saved on this device only."
+        : "Preview mode. Progress is saved in this browser.";
+    }
+    SYNC.setStatus("saved");
+  }
+
+  function adoptServerMastery(mastery){
+    const entry = mastery && mastery[ACTIVE_TOPIC];
+    if(!entry || !entry.data) return;
+    const serverState = coerceState(entry.data);
+    const localEmpty = state.attempts === 0 && state.correct === 0;
+    const serverNewer = (Number(serverState.updatedAt)||0) >= (Number(state.updatedAt)||0);
+    if(localEmpty || serverNewer){
+      state = serverState;
+      currentMode = state.lastMode;
+      try{ localStorage.setItem(STORE_KEY,JSON.stringify(state)); }catch{}
+    }
+  }
+
+  function bootstrap(){
+    if(!HAS_BACKEND){
+      renderTopics(FALLBACK_TOPICS);
+      applyIdentity(null);
+      setMode(currentMode);
+      return;
+    }
+    renderTopics(FALLBACK_TOPICS);
+    setMode(currentMode);
+    callServer("getBootstrapData")
+      .then(data => {
+        if(data.topics && data.topics.length) renderTopics(data.topics);
+        applyIdentity(data);
+        adoptServerMastery(data.mastery);
+        setMode(currentMode);
+      })
+      .catch(() => {
+        applyIdentity(null);
+      });
+  }
+
+  /* ---------------- Events ---------------- */
+  els.learnBtn.addEventListener("click",toggleLearn);
+  els.speakBtn.addEventListener("click",speakPrompt);
+  els.chineseAudio.addEventListener("click",speakChinese);
+  els.ukAudio.addEventListener("click",speakUKGuide);
+  els.resetBtn.addEventListener("click",resetEverything);
+  els.continueBtn.addEventListener("click",()=>{ window.scrollTo({top:0,behavior:"smooth"}); });
+  els.modeBtns.forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
+  els.fallStartBtn.addEventListener("click",startFalling);
+  els.fallPauseBtn.addEventListener("click",pauseFalling);
+  els.fallNewBtn.addEventListener("click",newFallingRun);
+  els.fallNextBtn.addEventListener("click",nextFallingLevel);
+  els.strokeWatchBtn.addEventListener("click",watchStroke);
+  els.strokePracticeBtn.addEventListener("click",practiceStroke);
+  els.strokeOutlineBtn.addEventListener("click",toggleStrokeOutline);
+  els.strokeNextBtn.addEventListener("click",nextStrokeItem);
+  els.sidebarOpen.addEventListener("click",openSidebar);
+  els.sidebarClose.addEventListener("click",closeSidebar);
+  els.sidebarScrim.addEventListener("click",closeSidebar);
+  els.lockedBackBtn.addEventListener("click",()=>{
+    markCurrentTopic(ACTIVE_TOPIC);
+    els.lockedPanel.classList.add("hidden");
+    els.lessonRoot.classList.remove("hidden");
+    els.topicTitle.textContent = "Animals";
+    els.topicWords.textContent = "狗 猫 金鱼 兔子 鸟 蛇 马 熊猫 龙";
+  });
+  els.openAdminBtn.addEventListener("click",openAdmin);
+  els.adminClose.addEventListener("click",closeAdmin);
+  els.adminRefresh.addEventListener("click",loadAdmin);
+
+  els.wordRows.innerHTML = WORDS.map(w=>`
+    <tr>
+      <td class="han border-b border-goldsoft px-2 py-2 text-lg font-black">${w.zh}</td>
+      <td class="border-b border-goldsoft px-2 py-2">${w.en}</td>
+      <td class="border-b border-goldsoft px-2 py-2">${w.py}</td>
+      <td class="border-b border-goldsoft px-2 py-2">“${w.sound}” · ${w.note}</td>
+    </tr>`).join("");
+
+  if("speechSynthesis" in window) speechSynthesis.onvoiceschanged=()=>{};
+
+  bootstrap();
+})();
+</script>
+</body>
+</html>
