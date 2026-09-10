@@ -59,6 +59,8 @@ function getPageData() {
 /**
  * Everything the client needs on load: identity plus, for a signed-in
  * student, their saved per-topic mastery so progress restores on any device.
+ * `webAppUrl` / `accountChooserUrl` let the client's "wrong Google account"
+ * prompt reload the app in another signed-in account's context.
  */
 function getBootstrapData() {
   var email = getActiveSchoolEmail_();
@@ -66,12 +68,33 @@ function getBootstrapData() {
     currentUser: email,
     isTeacher: email ? isTeacherEmail_(email) : false,
     topics: CL_TOPIC_SUMMARY_(),
+    webAppUrl: webAppUrl_(),
+    accountChooserUrl: accountChooserUrl_(),
     mastery: {}
   };
   if (email) {
     payload.mastery = readMasteryForEmail_(email);
   }
   return payload;
+}
+
+/** The deployed /exec URL of this web app, with a hard-coded fallback. */
+function webAppUrl_() {
+  try {
+    var url = ScriptApp.getService().getUrl();
+    if (url) return url;
+  } catch (err) {
+    // getUrl() can be unavailable in some execution contexts.
+  }
+  return 'https://script.google.com/macros/s/'
+    + 'AKfycbxM5ZmyrpPP_PikikX9_yPdDPpFn0Glbt0ki8Ap04MTa-EhWVBeB488KITuDFMlubTw'
+    + '/exec';
+}
+
+/** Google's native "choose an account" screen, hinted to the school domain. */
+function accountChooserUrl_() {
+  return 'https://accounts.google.com/AccountChooser?hd=' + CL_ALLOWED_DOMAIN
+    + '&continue=' + encodeURIComponent(webAppUrl_());
 }
 
 /** Returns the signed-in student's saved mastery, keyed by topic id. */

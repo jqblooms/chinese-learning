@@ -31,12 +31,27 @@ returns the visitor's address only when they are a same-domain
 (`@bloomsbury.ac.th`) user; everyone else is anonymous. That is the split
 we want.
 
-**Sign-in nudge:** when `getBootstrapData` returns no `currentUser`, the
-client shows a small centred modal ("Sign in to save your progress", a
-"Sign in with Google" link to accounts.google.com, and a tiny x).
-Dismissal is remembered for the browser session (`sessionStorage`
-`chineseLearning:v1:signinDismissed`). Gated on `HAS_BACKEND` so it never
-shows in local preview.
+**Wrong-Google-account fix:** with `ANYONE_ANONYMOUS` + `USER_DEPLOYING`,
+`Session.getActiveUser().getEmail()` only returns a value for a
+same-domain visitor, so a student whose *primary* browser Google account
+is personal shows up as anonymous even though they are signed in. When
+`getBootstrapData` returns no `currentUser`, the client shows a small
+centred modal ("Use your Bloomsbury account") with:
+
+- **Choose your school account** → `accountChooserUrl` from the server
+  (`https://accounts.google.com/AccountChooser?hd=bloomsbury.ac.th&continue=<app>`),
+  Google's native account picker.
+- **Open as account 2 / 3** → `webAppUrl?authuser=1` / `?authuser=2` from
+  the server, reloading the app in another signed-in account's context.
+- a tiny x to dismiss (not remembered — reload shows it again, because
+  nothing saves until identity is real).
+
+All three links are `target="_top"` so they navigate the whole tab, not
+the GAS sandbox iframe. The URLs come from the server
+(`getBootstrapData` -> `webAppUrl` = `ScriptApp.getService().getUrl()`
+with a hard-coded fallback, `accountChooserUrl`) precisely so no `https://`
+literal sits in the inline `<script>` (see the GAS landmine above).
+Gated on `HAS_BACKEND` so it never shows in local preview.
 
 **GAS landmine — no `//` inside an inline `<script>` string literal.**
 The first cut of the modal used
