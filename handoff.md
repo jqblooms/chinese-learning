@@ -2,6 +2,21 @@
 
 Living project doc. Update after every session's changes.
 
+## 2026-09-10 — loading no longer changes your mode; default mode is not "mixed"
+
+- **`applyAdoptedState` no longer calls `setMode`.** When late-arriving
+  server progress was adopted it forced the practice mode to the server's
+  saved `lastMode` — so opening the app or switching to a unit could yank
+  you from (say) a quiz mode into full-screen Falling a second later
+  ("saving/loading switches which tab I'm on"). Mode is a per-device UI
+  choice now: on adopt we realign `state.lastMode` to what's on screen and
+  only refresh the progress panel.
+- **`DEFAULT_MODE = "zhpy"`** (汉字 ↔ Pinyin). A topic you've never opened
+  starts there, never in Mixed mastery. An *explicit* choice of Mixed is
+  still remembered per device (`coerceState` keeps any valid saved mode).
+  The active-look classes moved from the Mixed button to the zhpy button;
+  Mixed is last in the grid.
+
 ## 2026-09-10 — Year 7 Unit 1 added; Y7 Unit 2 relabelled
 
 - **Year 7 · Unit 1: Foundation & Greetings** (`y7_foundation`, 18 words) —
