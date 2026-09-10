@@ -33,10 +33,24 @@ we want.
 
 **Sign-in nudge:** when `getBootstrapData` returns no `currentUser`, the
 client shows a small centred modal ("Sign in to save your progress", a
-"Sign in with Google" button opening accounts.google.com, and a tiny x).
+"Sign in with Google" link to accounts.google.com, and a tiny x).
 Dismissal is remembered for the browser session (`sessionStorage`
 `chineseLearning:v1:signinDismissed`). Gated on `HAS_BACKEND` so it never
 shows in local preview.
+
+**GAS landmine — no `//` inside an inline `<script>` string literal.**
+The first cut of the modal used
+`window.open("https://accounts.google.com/", …)`. HtmlService strips `//`
+(and everything after it, to end of line) out of inline script text, so
+the served JS became `window.open("https:` + newline — an unterminated
+string that made the **entire IIFE fail to parse**, leaving the app stuck
+on "Checking sign-in…" (reported as
+`Failed to execute 'write' on 'Document': Invalid or unexpected token`).
+Fix: the URL now lives in an `<a href>` (attribute URLs pass through
+fine, like the CDN `<script src>` tags). Rule for this file: never put
+`//` in a JS string in `Index.html`; use `<a href>`, or split/escape it.
+Verified the fix by unwrapping the served HTML and running `node -c` on
+the extracted IIFE (`scratchpad/unwrap.js`).
 
 **Still required from James:** open the new web-app URL once signed in as
 jamesquinney@bloomsbury.ac.th and accept the OAuth consent
