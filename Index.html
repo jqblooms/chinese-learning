@@ -102,7 +102,6 @@
     #sidebar { transition: transform .22s ease, width .22s ease; }
     .topic-btn[aria-current="true"] { background:#9b2c20; color:#fff; border-color:#9b2c20; box-shadow:0 6px 18px rgba(127,29,29,.18); }
     .topic-btn[aria-current="true"] .topic-sub { color:#fee2e2; }
-    #sidebarScrim { transition: opacity .2s ease; }
 
     /* Falling characters takes over the viewport and sizes its field to fit */
     #fallingArea.falling-fullscreen {
@@ -161,8 +160,6 @@
       <path d="M88 167h154" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
     </svg>
   </div>
-
-  <div id="sidebarScrim" class="fixed inset-0 z-30 bg-ink/40 opacity-0 pointer-events-none lg:hidden" aria-hidden="true"></div>
 
   <div class="relative z-10 flex min-h-screen">
     <!-- Sidebar -->
@@ -462,6 +459,7 @@
   // and word list fall back to the pinyin.
   const CURRICULUM = {
     animals: {
+      group: "Tutorial",
       title: "Animals",
       subtitle: "动物 · tutorial",
       words: [
@@ -477,7 +475,117 @@
       ]
     },
 
+    y10_home: {
+      group: "Year 10",
+      title: "Unit 1: My Home",
+      subtitle: "我的家 · IGCSE 0547",
+      words: [
+        {id:"home",        zh:"家",     en:"home / family",      py:"jiā"},
+        {id:"house",       zh:"房子",   en:"house",              py:"fángzi"},
+        {id:"flat",        zh:"公寓",   en:"flat / apartment",   py:"gōngyù"},
+        {id:"building",    zh:"楼",     en:"building / storey",  py:"lóu"},
+        {id:"room",        zh:"房间",   en:"room",               py:"fángjiān"},
+        {id:"bedroom",     zh:"卧室",   en:"bedroom",            py:"wòshì"},
+        {id:"livingroom",  zh:"客厅",   en:"living room",        py:"kètīng"},
+        {id:"kitchen",     zh:"厨房",   en:"kitchen",            py:"chúfáng"},
+        {id:"bathroom",    zh:"洗手间", en:"bathroom / toilet",  py:"xǐshǒujiān"},
+        {id:"balcony",     zh:"阳台",   en:"balcony",            py:"yángtái"},
+        {id:"garden",      zh:"花园",   en:"garden",             py:"huāyuán"},
+        {id:"upstairs",    zh:"楼上",   en:"upstairs",           py:"lóushàng"},
+        {id:"downstairs",  zh:"楼下",   en:"downstairs",         py:"lóuxià"},
+        {id:"bed",         zh:"床",     en:"bed",                py:"chuáng"},
+        {id:"table",       zh:"桌子",   en:"table / desk",       py:"zhuōzi"},
+        {id:"chair",       zh:"椅子",   en:"chair",              py:"yǐzi"},
+        {id:"sofa",        zh:"沙发",   en:"sofa",               py:"shāfā"},
+        {id:"tv",          zh:"电视",   en:"television",         py:"diànshì"},
+        {id:"fridge",      zh:"冰箱",   en:"fridge",             py:"bīngxiāng"},
+        {id:"aircon",      zh:"空调",   en:"air conditioning",   py:"kōngtiáo"},
+        {id:"computer",    zh:"电脑",   en:"computer",           py:"diànnǎo"},
+        {id:"door",        zh:"门",     en:"door",               py:"mén"},
+        {id:"window",      zh:"窗户",   en:"window",             py:"chuānghu"},
+        {id:"big",         zh:"大",     en:"big",                py:"dà"},
+        {id:"small",       zh:"小",     en:"small",              py:"xiǎo"},
+        {id:"new",         zh:"新",     en:"new",                py:"xīn"},
+        {id:"old",         zh:"旧",     en:"old (of things)",    py:"jiù"},
+        {id:"pretty",      zh:"漂亮",   en:"pretty / beautiful", py:"piàoliang"},
+        {id:"comfortable", zh:"舒服",   en:"comfortable",        py:"shūfu"},
+        {id:"quiet",       zh:"安静",   en:"quiet",              py:"ānjìng"},
+        {id:"convenient",  zh:"方便",   en:"convenient",         py:"fāngbiàn"},
+        {id:"modern",      zh:"现代",   en:"modern",             py:"xiàndài"},
+        {id:"spacious",    zh:"宽敞",   en:"spacious",           py:"kuānchang"}
+      ],
+      grammar: [
+        {zh:"我住在……",                  en:"I live in / at …"},
+        {zh:"我家有……",                  en:"My home has …"},
+        {zh:"我的卧室里有……",            en:"In my bedroom there is …"},
+        {zh:"……在……旁边",               en:"… is next to …"},
+        {zh:"我最喜欢……，因为……",        en:"I like … best, because …"},
+        {zh:"……比……大 / 方便",          en:"… is bigger / more convenient than …"},
+        {zh:"虽然我的家……，但是……",      en:"Although my home is …, …"},
+        {zh:"如果可以的话，我想……",       en:"If possible, I'd like to …"},
+        {zh:"将来我希望住在……",           en:"In the future I hope to live in …"}
+      ]
+    },
+
+    y10_town: {
+      group: "Year 10",
+      title: "Unit 2: Town & Neighbourhood",
+      subtitle: "城市与社区 · IGCSE 0547",
+      words: [
+        {id:"citycentre",  zh:"市中心",   en:"city centre",       py:"shìzhōngxīn"},
+        {id:"shop",        zh:"商店",     en:"shop",              py:"shāngdiàn"},
+        {id:"mall",        zh:"商场",     en:"shopping mall",     py:"shāngchǎng"},
+        {id:"supermarket", zh:"超市",     en:"supermarket",       py:"chāoshì"},
+        {id:"restaurant",  zh:"饭店",     en:"restaurant",        py:"fàndiàn"},
+        {id:"cafe",        zh:"咖啡店",   en:"café",              py:"kāfēidiàn"},
+        {id:"hospital",    zh:"医院",     en:"hospital",          py:"yīyuàn"},
+        {id:"bank",        zh:"银行",     en:"bank",              py:"yínháng"},
+        {id:"park",        zh:"公园",     en:"park",              py:"gōngyuán"},
+        {id:"cinema",      zh:"电影院",   en:"cinema",            py:"diànyǐngyuàn"},
+        {id:"gym",         zh:"体育馆",   en:"sports hall / gym", py:"tǐyùguǎn"},
+        {id:"school",      zh:"学校",     en:"school",            py:"xuéxiào"},
+        {id:"trainstation",zh:"火车站",   en:"train station",     py:"huǒchēzhàn"},
+        {id:"airport",     zh:"机场",     en:"airport",           py:"jīchǎng"},
+        {id:"market",      zh:"市场",     en:"market",            py:"shìchǎng"},
+        {id:"nearby",      zh:"附近",     en:"nearby",            py:"fùjìn"},
+        {id:"opposite",    zh:"对面",     en:"opposite",          py:"duìmiàn"},
+        {id:"beside",      zh:"旁边",     en:"beside / next to",  py:"pángbiān"},
+        {id:"distfrom",    zh:"离",       en:"(distance) from",   py:"lí"},
+        {id:"far",         zh:"远",       en:"far",               py:"yuǎn"},
+        {id:"near",        zh:"近",       en:"near / close",      py:"jìn"},
+        {id:"urbanarea",   zh:"市区",     en:"urban area",        py:"shìqū"},
+        {id:"suburbs",     zh:"郊区",     en:"suburbs",           py:"jiāoqū"},
+        {id:"city",        zh:"城市",     en:"city",              py:"chéngshì"},
+        {id:"countryside", zh:"农村",     en:"countryside",       py:"nóngcūn"},
+        {id:"lively",      zh:"热闹",     en:"lively / bustling", py:"rènao"},
+        {id:"quiet",       zh:"安静",     en:"quiet",             py:"ānjìng"},
+        {id:"convenient",  zh:"方便",     en:"convenient",        py:"fāngbiàn"},
+        {id:"inconvenient",zh:"不方便",   en:"inconvenient",      py:"bù fāngbiàn"},
+        {id:"clean",       zh:"干净",     en:"clean",             py:"gānjìng"},
+        {id:"dirty",       zh:"脏",       en:"dirty",             py:"zāng"},
+        {id:"safe",        zh:"安全",     en:"safe",              py:"ānquán"},
+        {id:"crowded",     zh:"拥挤",     en:"crowded",           py:"yōngjǐ"},
+        {id:"modern",      zh:"现代",     en:"modern",            py:"xiàndài"},
+        {id:"boring",      zh:"无聊",     en:"boring",            py:"wúliáo"},
+        {id:"interesting", zh:"有意思",   en:"interesting",       py:"yǒuyìsi"},
+        {id:"advantage",   zh:"优点",     en:"advantage",         py:"yōudiǎn"},
+        {id:"disadvantage",zh:"缺点",     en:"disadvantage",      py:"quēdiǎn"}
+      ],
+      grammar: [
+        {zh:"我家附近有……",                    en:"Near my home there is …"},
+        {zh:"……离我家很近",                    en:"… is very close to my home"},
+        {zh:"我觉得住在城市里比较……",           en:"I think living in the city is rather …"},
+        {zh:"城市比农村……",                    en:"The city is … than the countryside"},
+        {zh:"……最大的优点是……",               en:"…'s biggest advantage is …"},
+        {zh:"虽然……，但是……",                 en:"Although …, …"},
+        {zh:"如果我可以改变一个地方，我会……",   en:"If I could change one thing about a place, I would …"},
+        {zh:"我觉得城市应该……",                en:"I think the city should …"},
+        {zh:"将来我想住在……，因为……",          en:"In the future I want to live in …, because …"}
+      ]
+    },
+
     y11_school: {
+      group: "Year 11",
       title: "Unit 1: School & Education",
       subtitle: "学校与教育 · IGCSE 0547",
       words: [
@@ -536,6 +644,7 @@
     },
 
     y11_careers: {
+      group: "Year 11",
       title: "Unit 2: Future Plans & Careers",
       subtitle: "未来计划与职业 · IGCSE 0547",
       words: [
@@ -596,7 +705,8 @@
     }
   };
 
-  const TOPIC_ORDER = ["animals", "y11_school", "y11_careers"];
+  const TOPIC_ORDER = ["animals", "y10_home", "y10_town", "y11_school", "y11_careers"];
+  const GROUP_ORDER = ["Tutorial", "Year 10", "Year 11"];
   const LAST_TOPIC_KEY = "chineseLearning:v1:lastTopic";
   const TARGET = 3;
 
@@ -669,7 +779,7 @@
     identityLine:$("#identityLine"), topicList:$("#topicList"),
     lessonRoot:$("#lessonRoot"), lockedPanel:$("#lockedPanel"),
     lockedTitle:$("#lockedTitle"), lockedText:$("#lockedText"), lockedBackBtn:$("#lockedBackBtn"),
-    sidebar:$("#sidebar"), sidebarScrim:$("#sidebarScrim"),
+    sidebar:$("#sidebar"),
     sidebarOpen:$("#sidebarOpen"), sidebarClose:$("#sidebarClose"),
     openAdminBtn:$("#openAdminBtn"), adminModal:$("#adminModal"),
     adminBody:$("#adminBody"), adminClose:$("#adminClose"), adminRefresh:$("#adminRefresh"),
@@ -1840,26 +1950,52 @@
   });
 
   /* ---------------- Sidebar / topics ---------------- */
-  const FALLBACK_TOPICS = TOPIC_ORDER.map((id, i) => ({
-    id, lesson: i + 1,
-    title: CURRICULUM[id].title,
-    subtitle: CURRICULUM[id].subtitle,
-    status: "available",
-    wordCount: CURRICULUM[id].words.length
-  }));
+  const FALLBACK_TOPICS = (() => {
+    const perGroup = {};
+    return TOPIC_ORDER.map(id => {
+      const group = CURRICULUM[id].group || "Other";
+      perGroup[group] = (perGroup[group] || 0) + 1;
+      return {
+        id, group,
+        lesson: group === "Tutorial" ? null : perGroup[group],
+        title: CURRICULUM[id].title,
+        subtitle: CURRICULUM[id].subtitle,
+        status: "available",
+        wordCount: CURRICULUM[id].words.length
+      };
+    });
+  })();
+
+  function groupRank(g){
+    const i = GROUP_ORDER.indexOf(g);
+    return i < 0 ? 99 : i;
+  }
 
   function renderTopics(topics){
     els.topicList.innerHTML = "";
-    topics.forEach(t => {
+    const ordered = topics.slice().sort((a,b) =>
+      groupRank(a.group) - groupRank(b.group) || (a.lesson||0) - (b.lesson||0)
+    );
+    let lastGroup = null;
+    ordered.forEach((t, idx) => {
+      const group = t.group || "Other";
+      if(group !== lastGroup){
+        lastGroup = group;
+        const h = document.createElement("div");
+        h.className = "px-1 pt-2 pb-1 text-[11px] font-black uppercase tracking-[0.12em] text-smoke" + (idx === 0 ? "" : " mt-1");
+        h.textContent = group;
+        els.topicList.appendChild(h);
+      }
       const available = t.status === "available";
       const b = document.createElement("button");
       b.type = "button";
       b.className = "topic-btn w-full rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-2.5 text-left transition";
       if(!available) b.className += " opacity-60";
       b.setAttribute("aria-current", String(available && t.id === currentTopic));
+      const num = t.lesson ? `<span class="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-[#efe0c2] text-[11px] font-black text-ink">${t.lesson}</span>` : "";
       b.innerHTML = `
         <div class="flex items-center gap-2">
-          <span class="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-[#efe0c2] text-[11px] font-black text-ink">${t.lesson}</span>
+          ${num}
           <span class="min-w-0">
             <span class="block truncate font-black leading-tight">${t.title}</span>
             <span class="topic-sub block truncate text-[11px] text-smoke">${available ? (t.wordCount + " words") : "Coming soon"} · ${t.subtitle||""}</span>
@@ -1959,17 +2095,27 @@
     }
   }
 
+  // The mobile sidebar slides over as a panel with no backdrop, so the rest
+  // of the page stays fully clickable while it is open. A click anywhere
+  // outside it (or on a topic) closes it.
+  function sidebarIsOverlay(){
+    return !window.matchMedia("(min-width: 1024px)").matches;
+  }
   function openSidebar(){
     els.sidebar.classList.remove("-translate-x-full");
-    els.sidebarScrim.classList.remove("opacity-0","pointer-events-none");
-    els.sidebarScrim.classList.add("opacity-100");
   }
   function closeSidebar(){
-    if(window.matchMedia("(min-width: 1024px)").matches) return;
+    if(!sidebarIsOverlay()) return;
     els.sidebar.classList.add("-translate-x-full");
-    els.sidebarScrim.classList.add("opacity-0","pointer-events-none");
-    els.sidebarScrim.classList.remove("opacity-100");
   }
+  function sidebarIsOpen(){
+    return sidebarIsOverlay() && !els.sidebar.classList.contains("-translate-x-full");
+  }
+  document.addEventListener("click", e => {
+    if(!sidebarIsOpen()) return;
+    if(els.sidebar.contains(e.target) || els.sidebarOpen.contains(e.target)) return;
+    closeSidebar();
+  });
 
   /* ---------------- Teacher view ---------------- */
   function openAdmin(){
@@ -2281,7 +2427,6 @@
   els.strokeNextBtn.addEventListener("click",nextStrokeItem);
   els.sidebarOpen.addEventListener("click",openSidebar);
   els.sidebarClose.addEventListener("click",closeSidebar);
-  els.sidebarScrim.addEventListener("click",closeSidebar);
   els.lockedBackBtn.addEventListener("click",()=>switchTopic(currentTopic in CURRICULUM ? currentTopic : "animals"));
   els.openAdminBtn.addEventListener("click",openAdmin);
   els.adminClose.addEventListener("click",closeAdmin);

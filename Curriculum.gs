@@ -30,6 +30,7 @@ var CL_GRADABLE_MODES = Object.freeze({ standard: true, falling: true });
 var CL_TOPICS = Object.freeze({
   animals: {
     id: 'animals',
+    group: 'Tutorial',
     lesson: 1,
     title: 'Animals',
     subtitle: '动物 · tutorial',
@@ -47,11 +48,106 @@ var CL_TOPICS = Object.freeze({
     ]
   },
 
+  // Year 10 Term 1A, Cambridge IGCSE Mandarin Chinese (0547).
+  y10_home: {
+    id: 'y10_home',
+    group: 'Year 10',
+    lesson: 1,
+    title: 'Unit 1: My Home',
+    subtitle: '我的家 · IGCSE 0547',
+    status: 'available',
+    words: [
+      { id: 'home',        zh: '家',     en: 'home / family',       py: 'jiā' },
+      { id: 'house',       zh: '房子',   en: 'house',               py: 'fángzi' },
+      { id: 'flat',        zh: '公寓',   en: 'flat / apartment',    py: 'gōngyù' },
+      { id: 'building',    zh: '楼',     en: 'building / storey',   py: 'lóu' },
+      { id: 'room',        zh: '房间',   en: 'room',                py: 'fángjiān' },
+      { id: 'bedroom',     zh: '卧室',   en: 'bedroom',             py: 'wòshì' },
+      { id: 'livingroom',  zh: '客厅',   en: 'living room',         py: 'kètīng' },
+      { id: 'kitchen',     zh: '厨房',   en: 'kitchen',             py: 'chúfáng' },
+      { id: 'bathroom',    zh: '洗手间', en: 'bathroom / toilet',   py: 'xǐshǒujiān' },
+      { id: 'balcony',     zh: '阳台',   en: 'balcony',             py: 'yángtái' },
+      { id: 'garden',      zh: '花园',   en: 'garden',              py: 'huāyuán' },
+      { id: 'upstairs',    zh: '楼上',   en: 'upstairs',            py: 'lóushàng' },
+      { id: 'downstairs',  zh: '楼下',   en: 'downstairs',          py: 'lóuxià' },
+      { id: 'bed',         zh: '床',     en: 'bed',                 py: 'chuáng' },
+      { id: 'table',       zh: '桌子',   en: 'table / desk',        py: 'zhuōzi' },
+      { id: 'chair',       zh: '椅子',   en: 'chair',               py: 'yǐzi' },
+      { id: 'sofa',        zh: '沙发',   en: 'sofa',                py: 'shāfā' },
+      { id: 'tv',          zh: '电视',   en: 'television',          py: 'diànshì' },
+      { id: 'fridge',      zh: '冰箱',   en: 'fridge',              py: 'bīngxiāng' },
+      { id: 'aircon',      zh: '空调',   en: 'air conditioning',    py: 'kōngtiáo' },
+      { id: 'computer',    zh: '电脑',   en: 'computer',            py: 'diànnǎo' },
+      { id: 'door',        zh: '门',     en: 'door',                py: 'mén' },
+      { id: 'window',      zh: '窗户',   en: 'window',              py: 'chuānghu' },
+      { id: 'big',         zh: '大',     en: 'big',                 py: 'dà' },
+      { id: 'small',       zh: '小',     en: 'small',               py: 'xiǎo' },
+      { id: 'new',         zh: '新',     en: 'new',                 py: 'xīn' },
+      { id: 'old',         zh: '旧',     en: 'old (of things)',     py: 'jiù' },
+      { id: 'pretty',      zh: '漂亮',   en: 'pretty / beautiful',  py: 'piàoliang' },
+      { id: 'comfortable', zh: '舒服',   en: 'comfortable',         py: 'shūfu' },
+      { id: 'quiet',       zh: '安静',   en: 'quiet',               py: 'ānjìng' },
+      { id: 'convenient',  zh: '方便',   en: 'convenient',          py: 'fāngbiàn' },
+      { id: 'modern',      zh: '现代',   en: 'modern',              py: 'xiàndài' },
+      { id: 'spacious',    zh: '宽敞',   en: 'spacious',            py: 'kuānchang' }
+    ]
+  },
+
+  y10_town: {
+    id: 'y10_town',
+    group: 'Year 10',
+    lesson: 2,
+    title: 'Unit 2: Town & Neighbourhood',
+    subtitle: '城市与社区 · IGCSE 0547',
+    status: 'available',
+    words: [
+      { id: 'citycentre',  zh: '市中心',   en: 'city centre',         py: 'shìzhōngxīn' },
+      { id: 'shop',        zh: '商店',     en: 'shop',                py: 'shāngdiàn' },
+      { id: 'mall',        zh: '商场',     en: 'shopping mall',       py: 'shāngchǎng' },
+      { id: 'supermarket', zh: '超市',     en: 'supermarket',         py: 'chāoshì' },
+      { id: 'restaurant',  zh: '饭店',     en: 'restaurant',          py: 'fàndiàn' },
+      { id: 'cafe',        zh: '咖啡店',   en: 'café',                py: 'kāfēidiàn' },
+      { id: 'hospital',    zh: '医院',     en: 'hospital',            py: 'yīyuàn' },
+      { id: 'bank',        zh: '银行',     en: 'bank',                py: 'yínháng' },
+      { id: 'park',        zh: '公园',     en: 'park',                py: 'gōngyuán' },
+      { id: 'cinema',      zh: '电影院',   en: 'cinema',              py: 'diànyǐngyuàn' },
+      { id: 'gym',         zh: '体育馆',   en: 'sports hall / gym',   py: 'tǐyùguǎn' },
+      { id: 'school',      zh: '学校',     en: 'school',              py: 'xuéxiào' },
+      { id: 'trainstation',zh: '火车站',   en: 'train station',       py: 'huǒchēzhàn' },
+      { id: 'airport',     zh: '机场',     en: 'airport',             py: 'jīchǎng' },
+      { id: 'market',      zh: '市场',     en: 'market',              py: 'shìchǎng' },
+      { id: 'nearby',      zh: '附近',     en: 'nearby',              py: 'fùjìn' },
+      { id: 'opposite',    zh: '对面',     en: 'opposite',            py: 'duìmiàn' },
+      { id: 'beside',      zh: '旁边',     en: 'beside / next to',    py: 'pángbiān' },
+      { id: 'distfrom',    zh: '离',       en: '(distance) from',     py: 'lí' },
+      { id: 'far',         zh: '远',       en: 'far',                 py: 'yuǎn' },
+      { id: 'near',        zh: '近',       en: 'near / close',        py: 'jìn' },
+      { id: 'urbanarea',   zh: '市区',     en: 'urban area',          py: 'shìqū' },
+      { id: 'suburbs',     zh: '郊区',     en: 'suburbs',             py: 'jiāoqū' },
+      { id: 'city',        zh: '城市',     en: 'city',                py: 'chéngshì' },
+      { id: 'countryside', zh: '农村',     en: 'countryside',         py: 'nóngcūn' },
+      { id: 'lively',      zh: '热闹',     en: 'lively / bustling',   py: 'rènao' },
+      { id: 'quiet',       zh: '安静',     en: 'quiet',               py: 'ānjìng' },
+      { id: 'convenient',  zh: '方便',     en: 'convenient',          py: 'fāngbiàn' },
+      { id: 'inconvenient',zh: '不方便',   en: 'inconvenient',        py: 'bù fāngbiàn' },
+      { id: 'clean',       zh: '干净',     en: 'clean',               py: 'gānjìng' },
+      { id: 'dirty',       zh: '脏',       en: 'dirty',               py: 'zāng' },
+      { id: 'safe',        zh: '安全',     en: 'safe',                py: 'ānquán' },
+      { id: 'crowded',     zh: '拥挤',     en: 'crowded',             py: 'yōngjǐ' },
+      { id: 'modern',      zh: '现代',     en: 'modern',              py: 'xiàndài' },
+      { id: 'boring',      zh: '无聊',     en: 'boring',              py: 'wúliáo' },
+      { id: 'interesting', zh: '有意思',   en: 'interesting',         py: 'yǒuyìsi' },
+      { id: 'advantage',   zh: '优点',     en: 'advantage',           py: 'yōudiǎn' },
+      { id: 'disadvantage',zh: '缺点',     en: 'disadvantage',        py: 'quēdiǎn' }
+    ]
+  },
+
   // Year 11 Term 1A, Cambridge IGCSE Mandarin Chinese (0547). Core Language
   // from the unit plans. Word lists must match CURRICULUM in Index.html.
   y11_school: {
     id: 'y11_school',
-    lesson: 2,
+    group: 'Year 11',
+    lesson: 1,
     title: 'Unit 1: School & Education',
     subtitle: '学校与教育 · IGCSE 0547',
     status: 'available',
@@ -101,7 +197,8 @@ var CL_TOPICS = Object.freeze({
 
   y11_careers: {
     id: 'y11_careers',
-    lesson: 3,
+    group: 'Year 11',
+    lesson: 2,
     title: 'Unit 2: Future Plans & Careers',
     subtitle: '未来计划与职业 · IGCSE 0547',
     status: 'available',
@@ -151,13 +248,16 @@ var CL_TOPICS = Object.freeze({
   }
 });
 
-/** Ordered, word-free summary for the client sidebar. */
+var CL_GROUP_ORDER = ['Tutorial', 'Year 10', 'Year 11'];
+
+/** Ordered, word-free summary for the client sidebar, grouped by year. */
 function CL_TOPIC_SUMMARY_() {
   return Object.keys(CL_TOPICS)
     .map(function (key) {
       var t = CL_TOPICS[key];
       return {
         id: t.id,
+        group: t.group || 'Other',
         lesson: t.lesson,
         title: t.title,
         subtitle: t.subtitle,
@@ -165,7 +265,13 @@ function CL_TOPIC_SUMMARY_() {
         wordCount: t.words.length
       };
     })
-    .sort(function (a, b) { return a.lesson - b.lesson; });
+    .sort(function (a, b) {
+      var ga = CL_GROUP_ORDER.indexOf(a.group);
+      var gb = CL_GROUP_ORDER.indexOf(b.group);
+      if (ga < 0) ga = 99;
+      if (gb < 0) gb = 99;
+      return ga - gb || a.lesson - b.lesson;
+    });
 }
 
 function CL_WORD_(topic, wordId) {

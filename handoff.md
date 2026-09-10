@@ -2,6 +2,29 @@
 
 Living project doc. Update after every session's changes.
 
+## 2026-09-10 — Year 10 units, sidebar year groups, non-blocking sidebar
+
+- **Year 10 Term 1A units added** (Cambridge IGCSE 0547), from the unit
+  plans:
+  - `y10_home` — Unit 1: My Home (我的家, 33 words + 9 sentence patterns):
+    accommodation/rooms, furniture, description adjectives.
+  - `y10_town` — Unit 2: Town & Neighbourhood (城市与社区, 38 words + 9
+    patterns): places/facilities, location words, evaluation adjectives.
+  Added to both `CURRICULUM` (Index.html) and `CL_TOPICS` (Curriculum.gs)
+  — keep the two word lists in step.
+- **Sidebar is grouped by year.** Every topic now has a `group`
+  ("Tutorial" / "Year 10" / "Year 11"); `renderTopics` sorts by
+  `GROUP_ORDER` then lesson and prints an uppercase group heading before
+  each block. Lesson badges number within a group (Y10: 1,2 — Y11: 1,2);
+  the Tutorial item has no badge. `CL_TOPIC_SUMMARY_` carries `group` and
+  sorts by `CL_GROUP_ORDER`.
+- **Opening the sidebar no longer blocks the page.** The full-screen
+  `#sidebarScrim` (which dimmed and captured clicks) is gone. The mobile
+  sidebar just slides over as an opaque panel; the rest of the page stays
+  fully clickable. A `document` click listener closes it when you click
+  anywhere outside it (or on a topic) — it is a listener, not a blocking
+  element, so it never eats the click you actually made.
+
 ## 2026-09-10 — navbar Quiz/Learn toggle, learn-mode dedup, mobile type pass
 
 - **Quiz / Learn is now a segmented toggle in the top header**
