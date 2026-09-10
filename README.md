@@ -1,15 +1,22 @@
 # Chinese Learning
 
 A Mandarin practice platform for Bloomsbury, built as a Google Apps Script
-web app. A collapsible left sidebar lists the course lessons; **Lesson 1,
-Animals**, is the first one built.
+web app. A collapsible left sidebar switches between topics:
+
+- **Animals** — a short tutorial topic (9 words).
+- **Unit 1: School & Education** — Year 11 Term 1A, Cambridge IGCSE 0547 (40 words + sentence patterns).
+- **Unit 2: Future Plans & Careers** — Year 11 Term 1A, Cambridge IGCSE 0547 (41 words + sentence patterns).
+
+Each topic runs the same six practice modes. The web app is **domain
+restricted** to `@bloomsbury.ac.th`; it executes as the deploying account
+so every request can reach the one shared data spreadsheet.
 
 ## Layout
 
 | File | Role |
 | --- | --- |
 | `Code.gs` | Web app entry (`doGet`), identity, seed-teacher list, and the callable endpoints (`getPageData`, `getBootstrapData`, `getMyChineseProgress`, `syncChineseProgress`, `getChineseAdminData`). |
-| `Curriculum.gs` | Server-side topic and word data. Source of truth for answer validation. Keep `CL_TOPICS.animals.words` in step with the `WORDS` array in `Index.html`. |
+| `Curriculum.gs` | Server-side topic and word data. Source of truth for answer validation. Keep each `CL_TOPICS[topic].words` in step with the matching entry in `CURRICULUM` in `Index.html`. |
 | `Storage.gs` | Auto-provisioned data spreadsheet, teacher list, and read/write helpers for the `Attempts` and `Mastery` sheets. |
 | `Analytics.gs` | `buildAdminBreakdown_` — the detailed per-student breakdown behind the Teacher view. |
 | `Index.html` | The whole client: app shell, sidebar, and the Animals lesson (six practice modes ported from the standalone prototype) plus the sync layer. |

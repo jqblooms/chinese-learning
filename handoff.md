@@ -2,6 +2,72 @@
 
 Living project doc. Update after every session's changes.
 
+## 2026-09-10 — Year 11 units + multi-topic engine + web-app access fix
+
+### Web-app access fix (mobile "refuses to load")
+
+`appsscript.json` webapp block changed from `ANYONE_ANONYMOUS` to
+`access: "DOMAIN"` (still `executeAs: "USER_DEPLOYING"`). The anonymous
+deployment was dead-ending on mobile: it tried to authenticate the user's
+personal Google account and the error page had no account switcher.
+`DOMAIN` restricts access to `@bloomsbury.ac.th`, so Google shows its own
+account chooser for the wrong account and every visitor arrives with a
+verified school identity. `USER_DEPLOYING` is kept so all requests can
+still reach the single shared data spreadsheet (owned by the deployer).
+**Redeploy is required for this to take effect, and James must still do
+the one-time authorization** (open the web-app URL once as
+jamesquinney@bloomsbury.ac.th and accept the OAuth consent).
+
+### Multi-topic engine
+
+`Index.html` no longer hard-codes the animals list. `CURRICULUM` holds all
+topics; `loadTopic(id)` swaps `WORDS` / `STORE_KEY` / `ALL_STROKE_CHARS`;
+`switchTopic(id)` (from the sidebar) flushes the current topic's sync,
+reloads per-topic `localStorage`, pulls that topic's server mastery and
+re-renders. Last topic is remembered in `localStorage`
+(`chineseLearning:v1:lastTopic`). Per-topic progress keys were already
+namespaced, so nothing collides.
+
+- Quiz **choices are capped at 6** (correct + 5 random distractors,
+  `pickChoiceWords`) — a 40-word grid of options was unusable.
+- Falling has a **fixed working pool** of 8 words per run (`fall.pool`,
+  `pickFallingPool`), re-picked on level-up. The meanings bank shows only
+  those 8, so large units don't blow out the panel.
+- Each topic can carry a `grammar` array; when present a "Sentence
+  patterns for this unit" `<details>` panel renders it (reference only,
+  not yet interactive).
+
+### Year 11 Term 1A content (Cambridge IGCSE Mandarin 0547)
+
+From `Year 11 Term1A - Unit 1/2 …docx`. Both added as available topics in
+`CURRICULUM` (Index.html) and `CL_TOPICS` (Curriculum.gs) — the two copies
+must stay in step.
+
+- **y11_school — Unit 1: School & Education** (40 words): subjects,
+  school environment, evaluation adjectives + 9 sentence patterns
+  (比/更, 应该/必须, 虽然…但是…, 以前…现在…, 如果…就…, …).
+- **y11_careers — Unit 2: Future Plans & Careers** (41 words): future
+  study, jobs, skills/qualities, evaluation + 10 sentence patterns
+  (打算/希望, 为了…, 优点/缺点是…, 如果…就…, multiple time frames).
+- The invented placeholder topics (Numbers, Colours, …) were removed;
+  only real content is listed now.
+
+Word lists use only `id/zh/en/py`; `sound`/`note` (the UK pronunciation
+guide) are optional and fall back to tone-stripped pinyin
+(`stripTones`, `wordSoundText`).
+
+### Not done yet (next)
+
+- Interactive practice for the grammar / sentence patterns (gap-fill,
+  sentence building, translation) — currently reference-only.
+- Teacher view still reports on `animals` only; add a topic selector and
+  pass it to `getChineseAdminData` / `buildAdminBreakdown_`.
+- HanziWriter has no stroke data for a few of the rarer unit characters;
+  those show a "could not load" status in Stroke mode (non-blocking).
+- Falling game-over on a missed character is implemented but was only
+  reviewed statically (the preview pane can't run requestAnimationFrame
+  while hidden) — worth a real device check.
+
 ## 2026-09-10 — teacher view, seed teachers, falling full-screen
 
 - **Teacher view rebuilt.** `getChineseAdminData` now returns a detailed

@@ -196,8 +196,8 @@
       <section id="lockedPanel" class="mx-auto hidden w-[min(680px,92vw)] px-4 py-16 text-center">
         <div class="mx-auto mb-4 w-fit rounded-full bg-[#fff7dc] p-4 text-4xl">課</div>
         <h2 id="lockedTitle" class="text-2xl font-black">Coming soon</h2>
-        <p id="lockedText" class="mx-auto mt-2 max-w-md leading-6 text-smoke">This lesson has not been built yet. Lesson 1, Animals, is ready now.</p>
-        <button id="lockedBackBtn" type="button" class="mt-5 rounded-xl bg-cinnabar px-5 py-3 font-black text-white shadow-seal">Go to Animals</button>
+        <p id="lockedText" class="mx-auto mt-2 max-w-md leading-6 text-smoke">This unit is not available yet.</p>
+        <button id="lockedBackBtn" type="button" class="mt-5 rounded-xl bg-cinnabar px-5 py-3 font-black text-white shadow-seal">Back to my unit</button>
       </section>
 
       <!-- Animals lesson -->
@@ -303,7 +303,7 @@
               </div>
 
               <div class="falling-meanings rounded-b-2xl border border-t-0 border-goldsoft bg-[#efe0c2] p-1.5">
-                <div id="fallAnswers" class="grid grid-cols-3 gap-1.5 sm:grid-cols-5 lg:grid-cols-9"></div>
+                <div id="fallAnswers" class="grid grid-cols-4 gap-1.5 sm:grid-cols-5 lg:grid-cols-8"></div>
               </div>
             </section>
 
@@ -365,15 +365,21 @@
           </aside>
         </div>
 
+        <details id="grammarPanel" class="paper-grain mt-4 hidden rounded-2xl border border-goldsoft bg-paper p-4 shadow-paper">
+          <summary class="cursor-pointer font-black">Sentence patterns for this unit</summary>
+          <p class="mt-2 text-xs text-smoke">Reference only for now. Use these frames when you speak and write. Interactive practice for these is coming.</p>
+          <ul id="grammarRows" class="mt-3 space-y-1.5"></ul>
+        </details>
+
         <details class="paper-grain mt-4 rounded-2xl border border-goldsoft bg-paper p-4 shadow-paper">
           <summary class="cursor-pointer font-black">Word list</summary>
           <div class="mt-3 overflow-x-auto">
-            <table class="w-full min-w-[620px] border-collapse text-sm">
+            <table class="w-full min-w-[560px] border-collapse text-sm">
               <thead><tr class="text-left text-xs uppercase tracking-wide text-smoke">
                 <th class="border-b border-goldsoft px-2 py-2">Chinese</th>
                 <th class="border-b border-goldsoft px-2 py-2">English</th>
                 <th class="border-b border-goldsoft px-2 py-2">Pinyin</th>
-                <th class="border-b border-goldsoft px-2 py-2">UK sound guide</th>
+                <th class="border-b border-goldsoft px-2 py-2">Sound guide</th>
               </tr></thead>
               <tbody id="wordRows"></tbody>
             </table>
@@ -412,23 +418,178 @@
     });
   }
 
-  /* ---------------- Curriculum (animals) ---------------- */
-  // WORDS must stay identical to CL_TOPICS.animals.words in Curriculum.gs.
-  const WORDS = [
-    {id:"dog",      zh:"狗",   en:"dog",      py:"gǒu",      sound:"goh",         note:"dipping tone"},
-    {id:"cat",      zh:"猫",   en:"cat",      py:"māo",      sound:"maow",        note:"high, level tone"},
-    {id:"goldfish", zh:"金鱼", en:"goldfish", py:"jīnyú",    sound:"jeen-yoo",    note:"high then rising"},
-    {id:"rabbit",   zh:"兔子", en:"rabbit",   py:"tùzi",     sound:"too-dzuh",    note:"falling then light"},
-    {id:"bird",     zh:"鸟",   en:"bird",     py:"niǎo",     sound:"nee-ow",      note:"dipping tone"},
-    {id:"snake",    zh:"蛇",   en:"snake",    py:"shé",      sound:"shuh",        note:"rising tone"},
-    {id:"horse",    zh:"马",   en:"horse",    py:"mǎ",       sound:"mah",         note:"dipping tone"},
-    {id:"panda",    zh:"熊猫", en:"panda",    py:"xióngmāo", sound:"shyong-maow", note:"rising then high"},
-    {id:"dragon",   zh:"龙",   en:"dragon",   py:"lóng",     sound:"long",        note:"rising tone"}
-  ];
+  /* ---------------- Curriculum ---------------- */
+  // Each topic's `words` must stay identical to CL_TOPICS[topic].words in
+  // Curriculum.gs (the server validates against that copy). `sound`/`note`
+  // (a UK pronunciation guide) are optional; when absent the speak button
+  // and word list fall back to the pinyin.
+  const CURRICULUM = {
+    animals: {
+      title: "Animals",
+      subtitle: "动物 · tutorial",
+      words: [
+        {id:"dog",      zh:"狗",   en:"dog",      py:"gǒu",      sound:"goh",         note:"dipping tone"},
+        {id:"cat",      zh:"猫",   en:"cat",      py:"māo",      sound:"maow",        note:"high, level tone"},
+        {id:"goldfish", zh:"金鱼", en:"goldfish", py:"jīnyú",    sound:"jeen-yoo",    note:"high then rising"},
+        {id:"rabbit",   zh:"兔子", en:"rabbit",   py:"tùzi",     sound:"too-dzuh",    note:"falling then light"},
+        {id:"bird",     zh:"鸟",   en:"bird",     py:"niǎo",     sound:"nee-ow",      note:"dipping tone"},
+        {id:"snake",    zh:"蛇",   en:"snake",    py:"shé",      sound:"shuh",        note:"rising tone"},
+        {id:"horse",    zh:"马",   en:"horse",    py:"mǎ",       sound:"mah",         note:"dipping tone"},
+        {id:"panda",    zh:"熊猫", en:"panda",    py:"xióngmāo", sound:"shyong-maow", note:"rising then high"},
+        {id:"dragon",   zh:"龙",   en:"dragon",   py:"lóng",     sound:"long",        note:"rising tone"}
+      ]
+    },
 
-  const ACTIVE_TOPIC = "animals";
+    y11_school: {
+      title: "Unit 1: School & Education",
+      subtitle: "学校与教育 · IGCSE 0547",
+      words: [
+        {id:"school",      zh:"学校", en:"school",            py:"xuéxiào"},
+        {id:"secondary",   zh:"中学", en:"secondary school",  py:"zhōngxué"},
+        {id:"student",     zh:"学生", en:"student",           py:"xuésheng"},
+        {id:"teacher",     zh:"老师", en:"teacher",           py:"lǎoshī"},
+        {id:"classmate",   zh:"同学", en:"classmate",         py:"tóngxué"},
+        {id:"subject",     zh:"科目", en:"school subject",    py:"kēmù"},
+        {id:"chinese",     zh:"中文", en:"Chinese (language)",py:"Zhōngwén"},
+        {id:"english",     zh:"英文", en:"English (language)",py:"Yīngwén"},
+        {id:"maths",       zh:"数学", en:"maths",             py:"shùxué"},
+        {id:"science",     zh:"科学", en:"science",           py:"kēxué"},
+        {id:"pe",          zh:"体育", en:"PE / sport",        py:"tǐyù"},
+        {id:"art",         zh:"美术", en:"art",               py:"měishù"},
+        {id:"music",       zh:"音乐", en:"music",             py:"yīnyuè"},
+        {id:"lesson",      zh:"课",   en:"lesson / class",    py:"kè"},
+        {id:"homework1",   zh:"功课", en:"homework",          py:"gōngkè"},
+        {id:"homework2",   zh:"作业", en:"assignment",        py:"zuòyè"},
+        {id:"exam",        zh:"考试", en:"exam",              py:"kǎoshì"},
+        {id:"grades",      zh:"成绩", en:"grades / results",  py:"chéngjì"},
+        {id:"course",      zh:"课程", en:"course / curriculum",py:"kèchéng"},
+        {id:"classroom",   zh:"教室", en:"classroom",         py:"jiàoshì"},
+        {id:"library",     zh:"图书馆",en:"library",           py:"túshūguǎn"},
+        {id:"gym",         zh:"体育馆",en:"sports hall / gym",  py:"tǐyùguǎn"},
+        {id:"field",       zh:"操场", en:"playground / field", py:"cāochǎng"},
+        {id:"canteen",     zh:"食堂", en:"canteen",           py:"shítáng"},
+        {id:"computerroom",zh:"电脑室",en:"computer room",      py:"diànnǎoshì"},
+        {id:"uniform",     zh:"校服", en:"school uniform",    py:"xiàofú"},
+        {id:"facilities",  zh:"设施", en:"facilities",        py:"shèshī"},
+        {id:"rules",       zh:"规则", en:"rules",             py:"guīzé"},
+        {id:"interesting", zh:"有意思",en:"interesting",        py:"yǒuyìsi"},
+        {id:"boring",      zh:"无聊", en:"boring",            py:"wúliáo"},
+        {id:"easy",        zh:"容易", en:"easy",              py:"róngyì"},
+        {id:"difficult",   zh:"难",   en:"difficult",         py:"nán"},
+        {id:"useful",      zh:"有用", en:"useful",            py:"yǒuyòng"},
+        {id:"important",   zh:"重要", en:"important",         py:"zhòngyào"},
+        {id:"strict",      zh:"严格", en:"strict",            py:"yángé"},
+        {id:"friendly",    zh:"友好", en:"friendly",          py:"yǒuhǎo"},
+        {id:"pressure",    zh:"压力", en:"pressure / stress", py:"yālì"},
+        {id:"strength",    zh:"优点", en:"strength / plus point",py:"yōudiǎn"},
+        {id:"weakness",    zh:"缺点", en:"weakness / drawback",py:"quēdiǎn"},
+        {id:"improve",     zh:"改善", en:"to improve",        py:"gǎishàn"}
+      ],
+      grammar: [
+        {zh:"我最喜欢的科目是……因为……", en:"My favourite subject is … because …"},
+        {zh:"我觉得……比……更……",        en:"I think … is more … than …"},
+        {zh:"虽然……但是……",             en:"Although …, …"},
+        {zh:"不但……而且……",             en:"Not only …, but also …"},
+        {zh:"我觉得学生应该 / 不应该……",  en:"I think students should / shouldn't …"},
+        {zh:"学生必须 / 可以 / 不可以……", en:"Students must / may / may not …"},
+        {zh:"以前我……，但是现在……",       en:"Before I …, but now …"},
+        {zh:"如果可以改变一件事，我会……",  en:"If I could change one thing, I would …"},
+        {zh:"将来我希望继续学习……",        en:"In the future I hope to keep studying …"}
+      ]
+    },
+
+    y11_careers: {
+      title: "Unit 2: Future Plans & Careers",
+      subtitle: "未来计划与职业 · IGCSE 0547",
+      words: [
+        {id:"future",       zh:"将来",  en:"the future",           py:"jiānglái"},
+        {id:"afterwards",   zh:"以后",  en:"afterwards / later",   py:"yǐhòu"},
+        {id:"nextyear",     zh:"明年",  en:"next year",            py:"míngnián"},
+        {id:"university",   zh:"大学",  en:"university",           py:"dàxué"},
+        {id:"study",        zh:"学习",  en:"to study",             py:"xuéxí"},
+        {id:"major",        zh:"专业",  en:"major / specialism",   py:"zhuānyè"},
+        {id:"continue",     zh:"继续",  en:"to continue",          py:"jìxù"},
+        {id:"graduate",     zh:"毕业",  en:"to graduate",          py:"bìyè"},
+        {id:"plan_n",       zh:"计划",  en:"a plan",               py:"jìhuà"},
+        {id:"plan_v",       zh:"打算",  en:"to plan to",           py:"dǎsuàn"},
+        {id:"hope",         zh:"希望",  en:"to hope",              py:"xīwàng"},
+        {id:"decide",       zh:"决定",  en:"to decide",            py:"juédìng"},
+        {id:"work",         zh:"工作",  en:"work / job",           py:"gōngzuò"},
+        {id:"occupation",   zh:"职业",  en:"occupation",           py:"zhíyè"},
+        {id:"teacher_c",    zh:"老师",  en:"teacher",              py:"lǎoshī"},
+        {id:"doctor",       zh:"医生",  en:"doctor",               py:"yīshēng"},
+        {id:"nurse",        zh:"护士",  en:"nurse",                py:"hùshi"},
+        {id:"engineer",     zh:"工程师",en:"engineer",             py:"gōngchéngshī"},
+        {id:"businessper",  zh:"商人",  en:"businessperson",       py:"shāngrén"},
+        {id:"designer",     zh:"设计师",en:"designer",             py:"shèjìshī"},
+        {id:"lawyer",       zh:"律师",  en:"lawyer",               py:"lǜshī"},
+        {id:"company",      zh:"公司",  en:"company",              py:"gōngsī"},
+        {id:"salary",       zh:"工资",  en:"salary / wages",       py:"gōngzī"},
+        {id:"workinghours", zh:"工作时间",en:"working hours",       py:"gōngzuò shíjiān"},
+        {id:"colleague",    zh:"同事",  en:"colleague",            py:"tóngshì"},
+        {id:"experience",   zh:"经验",  en:"experience",           py:"jīngyàn"},
+        {id:"clever",       zh:"聪明",  en:"clever",               py:"cōngming"},
+        {id:"conscientious",zh:"认真",  en:"conscientious",        py:"rènzhēn"},
+        {id:"patient",      zh:"有耐心",en:"patient",              py:"yǒu nàixīn"},
+        {id:"experienced",  zh:"有经验",en:"experienced",          py:"yǒu jīngyàn"},
+        {id:"speakforeign", zh:"会说外语",en:"can speak a foreign language",py:"huì shuō wàiyǔ"},
+        {id:"usecomputer",  zh:"会用电脑",en:"can use a computer",  py:"huì yòng diànnǎo"},
+        {id:"helpothers",   zh:"喜欢帮助别人",en:"likes helping others",py:"xǐhuan bāngzhù biéren"},
+        {id:"meaningful",   zh:"有意义",en:"meaningful",           py:"yǒu yìyì"},
+        {id:"stable",       zh:"稳定",  en:"stable",               py:"wěndìng"},
+        {id:"tough",        zh:"辛苦",  en:"tough / hard-going",   py:"xīnkǔ"},
+        {id:"stressful",    zh:"压力大",en:"stressful",            py:"yālì dà"},
+        {id:"wellpaid",     zh:"工资高",en:"well paid",            py:"gōngzī gāo"},
+        {id:"suit",         zh:"适合",  en:"to suit / be suitable",py:"shìhé"},
+        {id:"advantage_c",  zh:"优点",  en:"advantage",            py:"yōudiǎn"},
+        {id:"disadvantage_c",zh:"缺点", en:"disadvantage",         py:"quēdiǎn"}
+      ],
+      grammar: [
+        {zh:"将来我想……",                 en:"In the future I want to …"},
+        {zh:"中学毕业以后，我打算……",       en:"After I finish secondary school, I plan to …"},
+        {zh:"我希望上大学学习……",           en:"I hope to go to university to study …"},
+        {zh:"我想当……，因为……",           en:"I want to become a …, because …"},
+        {zh:"我觉得这个工作很适合我，因为……",en:"I think this job suits me well, because …"},
+        {zh:"这个工作的优点是……，缺点是……",en:"This job's advantage is …, its drawback is …"},
+        {zh:"为了……，我需要……",           en:"In order to …, I need to …"},
+        {zh:"如果有机会，我会……",           en:"If I get the chance, I will …"},
+        {zh:"如果我不能……，我可能会……",     en:"If I can't …, I might …"},
+        {zh:"我小时候想……，但是现在……",     en:"When I was little I wanted to …, but now …"}
+      ]
+    }
+  };
+
+  const TOPIC_ORDER = ["animals", "y11_school", "y11_careers"];
+  const LAST_TOPIC_KEY = "chineseLearning:v1:lastTopic";
   const TARGET = 3;
-  const STORE_KEY = "chineseLearning:v1:" + ACTIVE_TOPIC;
+
+  let currentTopic, WORDS, STORE_KEY, ALL_STROKE_CHARS, CHAR_TO_WORD;
+
+  function loadTopic(topicId){
+    currentTopic = CURRICULUM[topicId] ? topicId : "animals";
+    WORDS = CURRICULUM[currentTopic].words;
+    STORE_KEY = "chineseLearning:v1:" + currentTopic;
+    ALL_STROKE_CHARS = [...new Set(WORDS.flatMap(w => Array.from(w.zh).filter(c => /[一-鿿]/.test(c))))];
+    CHAR_TO_WORD = {};
+    WORDS.forEach(w => Array.from(w.zh).forEach(c => { if(!CHAR_TO_WORD[c]) CHAR_TO_WORD[c] = w.id; }));
+  }
+
+  function initialTopic(){
+    try{
+      const saved = localStorage.getItem(LAST_TOPIC_KEY);
+      if(saved && CURRICULUM[saved]) return saved;
+    }catch{}
+    return "animals";
+  }
+
+  loadTopic(initialTopic());
+
+  function stripTones(s){
+    return String(s || "").replace(/[āáǎà]/g,"a").replace(/[ēéěè]/g,"e")
+      .replace(/[īíǐì]/g,"i").replace(/[ōóǒò]/g,"o").replace(/[ūúǔù]/g,"u")
+      .replace(/[ǖǘǚǜü]/g,"u").replace(/\s+/g," ").trim();
+  }
+  function wordSoundText(w){ return w.sound ? w.sound.replaceAll("-"," ") : stripTones(w.py); }
 
   const DIRECTIONS = {
     zh_py:{from:"zh",to:"py",label:"Chinese character to Pinyin",short:"汉→拼"},
@@ -464,6 +625,7 @@
     sideMode:$("#sideMode"), progressFill:$("#progressFill"),
     overallLabel:$("#overallLabel"), overallValue:$("#overallValue"),
     miniList:$("#miniList"), sideNote:$("#sideNote"), wordRows:$("#wordRows"),
+    grammarPanel:$("#grammarPanel"), grammarRows:$("#grammarRows"),
     topicTitle:$("#topicTitle"), topicWords:$("#topicWords"),
     saveStatus:$("#saveStatus"), saveDot:$("#saveDot"), saveText:$("#saveText"),
     identityLine:$("#identityLine"), topicList:$("#topicList"),
@@ -489,10 +651,6 @@
     strokeNextBtn:$("#strokeNextBtn"), strokeCurrentChar:$("#strokeCurrentChar"),
     strokeMistakes:$("#strokeMistakes"), strokeCorrectStrokes:$("#strokeCorrectStrokes")
   };
-
-  const ALL_STROKE_CHARS = [...new Set(WORDS.flatMap(w => Array.from(w.zh)))];
-  const CHAR_TO_WORD = {};
-  WORDS.forEach(w => Array.from(w.zh).forEach(c => { if(!CHAR_TO_WORD[c]) CHAR_TO_WORD[c] = w.id; }));
 
   function blankScores(){
     const all = {};
@@ -621,6 +779,7 @@
     let queue = [];
     let flushTimer = null;
     let inFlight = false;
+    let hasMasteryToSend = false;
 
     function setSignedIn(v){ signedIn = v; }
 
@@ -649,6 +808,7 @@
     function attempt(rec){
       if(!signedIn) return;
       queue.push({
+        _topic: currentTopic,
         mode: rec.mode,
         direction: rec.direction || "",
         wordId: rec.wordId,
@@ -662,6 +822,7 @@
 
     function mastery(){
       if(!signedIn) return;
+      hasMasteryToSend = true;
       schedule(1200);
     }
 
@@ -672,10 +833,19 @@
 
     function flush(){
       if(!signedIn || inFlight) return;
-      const batch = queue.splice(0, 80);
+      // Only send attempts belonging to the topic that is loaded now; any
+      // left over from a topic the student switched away from wait their turn.
+      const mine = [];
+      const rest = [];
+      queue.forEach(a => (a._topic === currentTopic ? mine : rest).push(a));
+      const batch = mine.slice(0, 80);
+      const leftover = rest.concat(mine.slice(80));
+      if(!batch.length && !hasMasteryToSend){ queue = leftover; return; }
+      queue = leftover;
+      hasMasteryToSend = false;
       const payload = {
-        topic: ACTIVE_TOPIC,
-        attempts: batch,
+        topic: currentTopic,
+        attempts: batch.map(({_topic, ...a}) => a),
         mastery: state
       };
       inFlight = true;
@@ -689,6 +859,7 @@
         .catch(() => {
           inFlight = false;
           queue = batch.concat(queue);   // put the batch back for a later retry
+          hasMasteryToSend = true;
           setStatus("error");
           schedule(4000);
         });
@@ -748,7 +919,8 @@
     }
     if(!candidates.length){ showComplete(); return; }
     const chosen = weightedChoice(candidates);
-    current = {word:WORDS.find(w=>w.id===chosen.id),dir:chosen.dir};
+    const word = WORDS.find(w=>w.id===chosen.id);
+    current = {word, dir:chosen.dir, choices:pickChoiceWords(word)};
     recentPairs.push(chosen.id+":"+chosen.dir);
     if(recentPairs.length > 6) recentPairs.shift();
     locked = false;
@@ -781,10 +953,27 @@
     updateProgress();
   }
 
+  // The correct word plus up to 5 random distractors, shuffled. Keeps the
+  // choice grid usable for large topics (40+ words) instead of listing all.
+  function pickChoiceWords(correctWord){
+    const n = Math.min(WORDS.length, 6);
+    const pool = WORDS.filter(w => w.id !== correctWord.id);
+    for(let i = pool.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    const picks = [correctWord, ...pool.slice(0, n - 1)];
+    for(let i = picks.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [picks[i], picks[j]] = [picks[j], picks[i]];
+    }
+    return picks;
+  }
+
   function renderChoices(){
     const d = DIRECTIONS[current.dir];
     els.choices.innerHTML = "";
-    WORDS.forEach(w => {
+    (current.choices || WORDS).forEach(w => {
       const b = document.createElement("button");
       b.type = "button";
       b.className = "choice-btn min-h-[64px] rounded-xl border border-goldsoft bg-[#fffaf0] px-2 py-2 font-black transition";
@@ -848,7 +1037,7 @@
   function showComplete(){
     els.standardArea.classList.add("hidden");
     els.completeArea.classList.remove("hidden");
-    els.completeText.textContent = `${MODES[currentMode].name} is complete for all 9 words.`;
+    els.completeText.textContent = `${MODES[currentMode].name} is complete for all ${WORDS.length} words.`;
     updateProgress();
   }
 
@@ -934,7 +1123,7 @@
       const completedWords = WORDS.filter(strokeWordDone).length;
       els.sideMode.textContent = "Stroke order";
       els.overallLabel.textContent = "Completed";
-      els.overallValue.textContent = `${completedWords}/9`;
+      els.overallValue.textContent = `${completedWords}/${WORDS.length}`;
       els.progressFill.style.width = `${completedWords/WORDS.length*100}%`;
       els.sideNote.textContent = "Each character needs 3 completed drawings.";
       els.miniList.innerHTML = "";
@@ -958,7 +1147,7 @@
     const done = totalDoneForMode();
     els.sideMode.textContent = `${MODES[currentMode].name} · ${MODES[currentMode].desc}`;
     els.overallLabel.textContent = "Completed";
-    els.overallValue.textContent = `${done}/9`;
+    els.overallValue.textContent = `${done}/${WORDS.length}`;
     els.progressFill.style.width = `${done/WORDS.length*100}%`;
     els.sideNote.textContent = HAS_BACKEND
       ? "Progress saves to your Bloomsbury account when signed in."
@@ -993,7 +1182,7 @@
     speechSynthesis.speak(u);
   }
   function speakChinese(){ if(current) speak(current.word.zh,"zh-CN",.78); }
-  function speakUKGuide(){ if(current) speak(current.word.sound.replaceAll("-"," "),"en-GB",.8); }
+  function speakUKGuide(){ if(current) speak(wordSoundText(current.word),"en-GB",.8); }
   function speakPrompt(){
     if(!current || currentMode === "falling" || currentMode === "stroke") return;
     const from = DIRECTIONS[current.dir].from;
@@ -1011,7 +1200,7 @@
   }
 
   function resetEverything(){
-    if(!confirm("Reset your progress for the Animals topic?")) return;
+    if(!confirm(`Reset your progress for "${CURRICULUM[currentTopic].title}"?`)) return;
     stopFalling(false);
     cancelStrokeQuiz();
     state = blankState();
@@ -1030,7 +1219,7 @@
   const fall = {
     running:false, paused:false, level:1, points:0, correct:0, errors:0, penalty:0,
     elapsedMs:0, lastFrame:0, lastSpawn:0, scoreRemainder:0, selectedId:null,
-    chars:new Map(), nextId:1, animationId:null, drag:null, over:false
+    chars:new Map(), nextId:1, animationId:null, drag:null, over:false, pool:[]
   };
 
   function fallTargetWord(w){ return fallingTarget === "py" ? w.py : w.en; }
@@ -1070,12 +1259,28 @@
   function fallPixelsPerSecond(){ return 42 * speedMultiplier(); }
   function pointsForCorrect(){ return 14 + fall.level*3; }
 
+  const FALL_POOL_SIZE = 8;
+
+  // Words in play for the current run. For small topics this is every word;
+  // for large units it is a fixed sample so the meanings bank stays a
+  // readable, stable size. Re-picked only between runs and on level-up.
+  function pickFallingPool(){
+    if(WORDS.length <= FALL_POOL_SIZE){ fall.pool = WORDS.slice(); return; }
+    const shuffled = WORDS.slice();
+    for(let i = shuffled.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    fall.pool = shuffled.slice(0, FALL_POOL_SIZE);
+  }
+
   function renderFallingAnswers(){
     els.fallAnswers.innerHTML = "";
-    for(const w of WORDS){
+    const pool = (fall.pool && fall.pool.length) ? fall.pool : WORDS;
+    for(const w of pool){
       const b = document.createElement("button");
       b.type = "button";
-      b.className = "answer-btn min-h-[44px] rounded-xl border border-goldsoft bg-[#fffaf0] px-1.5 py-2 text-sm font-black transition";
+      b.className = "answer-btn min-h-[40px] rounded-xl border border-goldsoft bg-[#fffaf0] px-1 py-1.5 text-xs font-black leading-tight transition sm:text-sm";
       b.textContent = fallTargetWord(w);
       b.dataset.id = w.id;
       b.addEventListener("click",()=>answerFalling(w.id,b));
@@ -1090,6 +1295,8 @@
     fall.elapsedMs = 0; fall.lastFrame = 0; fall.lastSpawn = 0; fall.scoreRemainder = 0;
     fall.selectedId = null; fall.nextId = 1; fall.drag = null; fall.over = false;
     clearFallingChars();
+    pickFallingPool();
+    renderFallingAnswers();
     els.fallStartOverlay.classList.remove("hidden");
     els.fallStartOverlay.querySelector("strong").textContent = "Falling Characters";
     els.fallStartOverlay.querySelector("span").textContent = "汉字 to " + fallTargetText();
@@ -1227,7 +1434,8 @@
 
   function spawnFallingChar(){
     if(fall.chars.size >= Math.min(7,2+fall.level)) return;
-    const word = WORDS[Math.floor(Math.random()*WORDS.length)];
+    const src = (fall.pool && fall.pool.length) ? fall.pool : WORDS;
+    const word = src[Math.floor(Math.random()*src.length)];
     const id = fall.nextId++;
     const el = document.createElement("div");
     el.className = "fall-char";
@@ -1390,6 +1598,7 @@
     fall.level++;
     fall.penalty *= .45;
     state.falling.bestLevel = Math.max(state.falling.bestLevel,fall.level);
+    if(WORDS.length > FALL_POOL_SIZE){ pickFallingPool(); renderFallingAnswers(); }
     setFallMessage(`Level ${fall.level}`,"good");
     updateFallingHud();
     updateProgress();
@@ -1565,14 +1774,13 @@
   });
 
   /* ---------------- Sidebar / topics ---------------- */
-  const FALLBACK_TOPICS = [
-    {id:"animals",lesson:1,title:"Animals",subtitle:"动物",status:"available",wordCount:9},
-    {id:"numbers",lesson:2,title:"Numbers 1-10",subtitle:"数字",status:"coming-soon",wordCount:0},
-    {id:"colours",lesson:3,title:"Colours",subtitle:"颜色",status:"coming-soon",wordCount:0},
-    {id:"family",lesson:4,title:"Family",subtitle:"家庭",status:"coming-soon",wordCount:0},
-    {id:"food",lesson:5,title:"Food & drink",subtitle:"食物",status:"coming-soon",wordCount:0},
-    {id:"classroom",lesson:6,title:"Classroom",subtitle:"教室",status:"coming-soon",wordCount:0}
-  ];
+  const FALLBACK_TOPICS = TOPIC_ORDER.map((id, i) => ({
+    id, lesson: i + 1,
+    title: CURRICULUM[id].title,
+    subtitle: CURRICULUM[id].subtitle,
+    status: "available",
+    wordCount: CURRICULUM[id].words.length
+  }));
 
   function renderTopics(topics){
     els.topicList.innerHTML = "";
@@ -1582,7 +1790,7 @@
       b.type = "button";
       b.className = "topic-btn w-full rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-2.5 text-left transition";
       if(!available) b.className += " opacity-60";
-      b.setAttribute("aria-current", String(available && t.id === ACTIVE_TOPIC));
+      b.setAttribute("aria-current", String(available && t.id === currentTopic));
       b.innerHTML = `
         <div class="flex items-center gap-2">
           <span class="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-[#efe0c2] text-[11px] font-black text-ink">${t.lesson}</span>
@@ -1605,21 +1813,84 @@
 
   function selectTopic(topic, available){
     closeSidebar();
-    if(available && topic.id === ACTIVE_TOPIC){
-      markCurrentTopic(ACTIVE_TOPIC);
-      els.lockedPanel.classList.add("hidden");
-      els.lessonRoot.classList.remove("hidden");
-      els.topicTitle.textContent = "Animals";
-      els.topicWords.textContent = "狗 猫 金鱼 兔子 鸟 蛇 马 熊猫 龙";
+    if(!available){
+      markCurrentTopic(topic.id);
+      els.lessonRoot.classList.add("hidden");
+      els.lockedPanel.classList.remove("hidden");
+      els.lockedTitle.textContent = topic.title;
+      els.lockedText.textContent = "This unit is not available yet.";
+      els.topicTitle.textContent = topic.title;
+      els.topicWords.textContent = topic.subtitle || "";
       return;
     }
-    markCurrentTopic(topic.id);
-    els.lessonRoot.classList.add("hidden");
-    els.lockedPanel.classList.remove("hidden");
-    els.lockedTitle.textContent = topic.title;
-    els.lockedText.textContent = "This lesson has not been built yet. Lesson 1, Animals, is ready now.";
-    els.topicTitle.textContent = topic.title;
-    els.topicWords.textContent = topic.subtitle || "";
+    switchTopic(topic.id);
+  }
+
+  function renderWordList(){
+    els.wordRows.innerHTML = WORDS.map(w=>`
+      <tr>
+        <td class="han border-b border-goldsoft px-2 py-2 text-lg font-black">${w.zh}</td>
+        <td class="border-b border-goldsoft px-2 py-2">${w.en}</td>
+        <td class="border-b border-goldsoft px-2 py-2">${w.py}</td>
+        <td class="border-b border-goldsoft px-2 py-2">${w.sound ? "“"+w.sound+"” · "+w.note : "“"+stripTones(w.py)+"”"}</td>
+      </tr>`).join("");
+  }
+
+  function renderGrammar(){
+    const g = CURRICULUM[currentTopic].grammar;
+    if(!g || !g.length){ els.grammarPanel.classList.add("hidden"); els.grammarPanel.open = false; return; }
+    els.grammarPanel.classList.remove("hidden");
+    els.grammarRows.innerHTML = g.map(row=>`
+      <li class="rounded-lg border border-goldsoft bg-[#fffdf8] px-3 py-2">
+        <span class="han text-base font-black">${row.zh}</span>
+        <span class="mt-0.5 block text-xs text-smoke">${row.en}</span>
+      </li>`).join("");
+  }
+
+  function refreshTopicChrome(){
+    const t = CURRICULUM[currentTopic];
+    els.topicTitle.textContent = t.title;
+    els.topicWords.textContent = t.subtitle || WORDS.slice(0,10).map(w=>w.zh).join(" ");
+    els.overallValue.textContent = `0/${WORDS.length}`;
+    renderWordList();
+    renderGrammar();
+    markCurrentTopic(currentTopic);
+  }
+
+  function switchTopic(topicId){
+    if(!CURRICULUM[topicId]) return;
+    els.lockedPanel.classList.add("hidden");
+    els.lessonRoot.classList.remove("hidden");
+
+    if(topicId === currentTopic){ refreshTopicChrome(); return; }
+
+    if(currentMode === "falling") stopFalling(false);
+    if(currentMode === "stroke") cancelStrokeQuiz();
+    try{ SYNC.flush(); }catch(e){}
+
+    loadTopic(topicId);
+    try{ localStorage.setItem(LAST_TOPIC_KEY, currentTopic); }catch(e){}
+
+    state = loadState();
+    currentMode = state.lastMode;
+    previousMode = (currentMode === "falling" || currentMode === "stroke") ? "mixed" : currentMode;
+    fallingTarget = state.fallingMode === "py" ? "py" : "en";
+    learnMode = false;
+    els.learnBtn.textContent = "Learn mode: Off";
+    els.learnBtn.classList.remove("ring-2","ring-gold");
+    recentPairs = [];
+    current = null;
+    stroke.wordIndex = 0;
+    stroke.charIndex = 0;
+
+    refreshTopicChrome();
+    setMode(currentMode);
+
+    if(HAS_BACKEND){
+      callServer("getMyChineseProgress")
+        .then(r => { adoptServerMastery(r && r.mastery); refreshTopicChrome(); setMode(currentMode); })
+        .catch(()=>{});
+    }
   }
 
   function openSidebar(){
@@ -1847,7 +2118,7 @@
   }
 
   function adoptServerMastery(mastery){
-    const entry = mastery && mastery[ACTIVE_TOPIC];
+    const entry = mastery && mastery[currentTopic];
     if(!entry || !entry.data) return;
     const serverState = coerceState(entry.data);
     const localEmpty = state.attempts === 0 && state.correct === 0;
@@ -1860,13 +2131,13 @@
   }
 
   function bootstrap(){
+    renderTopics(FALLBACK_TOPICS);
+    refreshTopicChrome();
     if(!HAS_BACKEND){
-      renderTopics(FALLBACK_TOPICS);
       applyIdentity(null);
       setMode(currentMode);
       return;
     }
-    renderTopics(FALLBACK_TOPICS);
     setMode(currentMode);
     callServer("getBootstrapData")
       .then(data => {
@@ -1878,6 +2149,7 @@
           persistLocal();
           SYNC.mastery();
         }
+        refreshTopicChrome();
         setMode(currentMode);
       })
       .catch(() => {
@@ -1910,24 +2182,10 @@
   els.sidebarOpen.addEventListener("click",openSidebar);
   els.sidebarClose.addEventListener("click",closeSidebar);
   els.sidebarScrim.addEventListener("click",closeSidebar);
-  els.lockedBackBtn.addEventListener("click",()=>{
-    markCurrentTopic(ACTIVE_TOPIC);
-    els.lockedPanel.classList.add("hidden");
-    els.lessonRoot.classList.remove("hidden");
-    els.topicTitle.textContent = "Animals";
-    els.topicWords.textContent = "狗 猫 金鱼 兔子 鸟 蛇 马 熊猫 龙";
-  });
+  els.lockedBackBtn.addEventListener("click",()=>switchTopic(currentTopic in CURRICULUM ? currentTopic : "animals"));
   els.openAdminBtn.addEventListener("click",openAdmin);
   els.adminClose.addEventListener("click",closeAdmin);
   els.adminRefresh.addEventListener("click",loadAdmin);
-
-  els.wordRows.innerHTML = WORDS.map(w=>`
-    <tr>
-      <td class="han border-b border-goldsoft px-2 py-2 text-lg font-black">${w.zh}</td>
-      <td class="border-b border-goldsoft px-2 py-2">${w.en}</td>
-      <td class="border-b border-goldsoft px-2 py-2">${w.py}</td>
-      <td class="border-b border-goldsoft px-2 py-2">“${w.sound}” · ${w.note}</td>
-    </tr>`).join("");
 
   if("speechSynthesis" in window) speechSynthesis.onvoiceschanged=()=>{};
 

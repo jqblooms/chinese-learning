@@ -2,9 +2,12 @@
  * Chinese Learning — web app entry point and identity.
  *
  * Deployment model:
- *   - Execute as: User deploying the web app
- *   - Who has access: Anyone (so students without a Google session can still
- *     open and practise; saving is disabled until a real school account is seen)
+ *   - Execute as: User deploying the web app (so every request can reach the
+ *     one shared data spreadsheet, which the deployer owns).
+ *   - Who has access: Anyone within the Bloomsbury Google Workspace domain.
+ *     Domain access means a visitor signed into the wrong (personal) Google
+ *     account gets Google's own account chooser instead of a dead-end error,
+ *     and every visitor already carries a verified @bloomsbury.ac.th identity.
  *
  * The active visitor is verified on every callable endpoint using
  * Session.getActiveUser(). A client-supplied email is never trusted.
