@@ -2041,7 +2041,7 @@
         obj.y += dy;
         obj.el.style.transform = `translate(${obj.x}px,${obj.y}px)`;
       }
-      if(!obj.dragging && obj.y > fieldH - obj.el.offsetHeight*0.5){
+      if(!obj.dragging && !obj.settling && obj.y > fieldH - obj.el.offsetHeight*0.5){
         gameOverFalling(obj);
         return;
       }
@@ -2104,7 +2104,7 @@
     const maxX = Math.max(4,els.fallField.clientWidth-width-4);
     const x = 4 + Math.random()*maxX;
     const y = -Math.max(64,el.getBoundingClientRect().height+10);
-    const obj = {id,word,el,x,y,dragging:false};
+    const obj = {id,word,el,x,y,dragging:false,settling:false};
     fall.chars.set(id,obj);
     el.style.transform = `translate(${x}px,${y}px)`;
     el.addEventListener("pointerdown",e=>startCharPointer(e,obj));
@@ -2156,6 +2156,14 @@
     if(drag.moved){
       const answer = answerAtPoint(e.clientX,e.clientY);
       if(answer){
+        // The player deliberately pulled this character down to reach the
+        // meanings bank — lift it clear of the floor so resolving the
+        // answer (or a wrong guess) never registers as hitting the bottom.
+        const fieldH = els.fallField.clientHeight;
+        obj.y = Math.max(-obj.el.offsetHeight,
+          Math.min(drag.originalY, fieldH*0.7, fieldH - obj.el.offsetHeight - 24));
+        obj.el.style.transform = `translate(${obj.x}px,${obj.y}px)`;
+        obj.settling = true;
         answerFalling(answer.dataset.id,answer,obj.id);
         return;
       }
@@ -2206,7 +2214,11 @@
       button.classList.add("bad");
       obj.el.classList.add("wrong");
       setFallMessage("Try another meaning. Speed increased.","bad");
-      setTimeout(()=>{ button.classList.remove("bad"); obj.el.classList.remove("wrong"); },420);
+      setTimeout(()=>{
+        button.classList.remove("bad");
+        obj.el.classList.remove("wrong");
+        obj.settling = false;   // resume normal falling from the lifted position
+      },420);
     }
     updateHighScore();
     saveState();

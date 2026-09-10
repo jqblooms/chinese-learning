@@ -2,13 +2,30 @@
 
 Living project doc. Update after every session's changes.
 
-## 2026-09-11 — stroke mode rebuilt full-screen; mobile viewport fixes
+## 2026-09-11 — stroke mode rebuilt full-screen; mobile + falling fixes
 
 **Not yet deployed** — clasp auth expired mid-session (`invalid_grant` /
-`invalid_rapt`). Code is committed + pushed to GitHub. To ship: `clasp
-login` (interactive, browser OAuth), then `clasp push --force` and
+`invalid_rapt`, a Workspace reauth-proof-token requirement on the sensitive
+scopes; the stored `~/.clasprc.json` refresh token is intact but Google
+demands an interactive reauth). Needs `clasp login` in a **real TTY** —
+the `--no-localhost` flow can't be piped because clasp 3.x prompts via
+`@inquirer/prompts`, which aborts on a non-TTY stdin. Code is committed +
+pushed to GitHub. To ship once reauthed: `clasp push --force` then
 `clasp update-deployment -d "…" AKfycbxM5ZmyrpPP_PikikX9_yPdDPpFn0Glbt0ki8Ap04MTa-EhWVBeB488KITuDFMlubTw`.
 Last live deployment is still **@24**.
+
+### Falling: drag-to-answer no longer counts as hitting the floor
+
+Dropping a character on a meaning button (correct **or** wrong) used to
+trigger `gameOverFalling` because the character was sitting at the bottom
+of the field (the player had dragged it down there to reach the bank) and
+`endCharPointer` cleared `obj.dragging` before the answer resolved. Fix:
+`obj.settling` flag — set in `endCharPointer` when a drag ends on an
+answer, which (a) lifts the char to `min(originalY, 70% field, floor−24)`
+and (b) suppresses the loop's floor check for that char. Cleared after the
+420 ms wrong-answer feedback so it resumes falling; the correct branch
+removes the char anyway. The tap-an-answer flow is unchanged (a slow char
+near the floor still loses, which is fair).
 
 James reported drawing mode on his phone: everything tiny ("like a
 zoomed-out desktop"), the canvas fought the page's scroll, the canvas was
