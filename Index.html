@@ -126,6 +126,10 @@
     #fallingArea.falling-fullscreen .falling-meanings { flex: 0 0 auto; }
     body.falling-lock { overflow: hidden; }
 
+    .fall-seg { background: #fffaf0; color: #201a17; }
+    .fall-seg.is-active { background: #9b2c20; color: #fff; }
+    .fall-seg + .fall-seg { border-left: 1px solid #d6bd78; }
+
     @media (prefers-reduced-motion: reduce) { * { scroll-behavior:auto !important; transition:none !important; } }
   </style>
 </head>
@@ -174,17 +178,17 @@
 
     <!-- Main column -->
     <div class="flex min-w-0 flex-1 flex-col">
-      <header class="sticky top-0 z-20 flex items-center gap-3 border-b border-goldsoft bg-paper/95 px-4 py-3 backdrop-blur">
-        <button id="sidebarOpen" type="button" class="rounded-lg border border-goldsoft bg-[#fffaf0] p-2 lg:hidden" aria-label="Open menu">
+      <header class="sticky top-0 z-20 flex items-center gap-2 border-b border-goldsoft bg-paper/95 px-3 py-2.5 backdrop-blur sm:gap-3 sm:px-4 sm:py-3">
+        <button id="sidebarOpen" type="button" class="shrink-0 rounded-lg border border-goldsoft bg-[#fffaf0] p-2 lg:hidden" aria-label="Open menu">
           <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
-        <div class="min-w-0">
-          <h1 id="topicTitle" class="truncate text-lg font-black sm:text-xl">Animals</h1>
-          <p id="topicWords" class="truncate text-xs text-smoke sm:text-sm">狗 猫 金鱼 兔子 鸟 蛇 马 熊猫 龙</p>
+        <div class="min-w-0 flex-1">
+          <h1 id="topicTitle" class="truncate text-base font-black sm:text-xl">Animals</h1>
+          <p id="topicWords" class="han truncate text-xs text-smoke sm:text-sm">狗 猫 金鱼 兔子 鸟 蛇 马 熊猫 龙</p>
         </div>
-        <div id="saveStatus" class="ml-auto hidden shrink-0 items-center gap-1.5 rounded-full border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-xs font-bold text-smoke">
+        <div id="saveStatus" class="ml-auto hidden shrink-0 items-center gap-1.5 rounded-full border border-goldsoft bg-[#fffaf0] px-2 py-1.5 text-xs font-bold text-smoke sm:px-3">
           <span id="saveDot" class="h-2 w-2 rounded-full bg-smoke"></span>
-          <span id="saveText">Saved on this device</span>
+          <span id="saveText" class="hidden sm:inline">Saved on this device</span>
         </div>
       </header>
 
@@ -256,10 +260,16 @@
             </section>
 
             <section id="fallingArea" class="hidden">
-              <div class="flex items-center gap-2">
+              <div class="flex flex-wrap items-center gap-2">
                 <strong class="font-black">Falling characters</strong>
-                <span class="hidden text-xs text-smoke sm:inline">汉字 → English meaning</span>
-                <button id="fallCloseBtn" type="button" class="ml-auto rounded-lg border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-sm font-bold">Exit</button>
+                <span id="fallModeLabel" class="hidden text-xs text-smoke sm:inline">汉字 → English meaning</span>
+                <div class="ml-auto flex items-center gap-2">
+                  <div class="flex overflow-hidden rounded-lg border border-goldsoft" role="group" aria-label="Match falling characters to">
+                    <button id="fallModeEn" type="button" class="fall-seg px-3 py-1.5 text-xs font-black">English</button>
+                    <button id="fallModePy" type="button" class="fall-seg px-3 py-1.5 text-xs font-black">Pinyin</button>
+                  </div>
+                  <button id="fallCloseBtn" type="button" class="rounded-lg border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-sm font-bold">Exit</button>
+                </div>
               </div>
 
               <div class="grid grid-cols-3 gap-1.5 text-center sm:grid-cols-6">
@@ -350,7 +360,7 @@
               <span id="overallLabel" class="text-sm text-smoke">Completed</span>
               <strong id="overallValue" class="text-2xl">0/9</strong>
             </div>
-            <div id="miniList" class="grid max-h-[520px] gap-2 overflow-auto sm:grid-cols-2 lg:grid-cols-1"></div>
+            <div id="miniList" class="grid gap-2 sm:grid-cols-2 lg:max-h-[520px] lg:grid-cols-1 lg:overflow-auto"></div>
             <p id="sideNote" class="mt-4 text-xs leading-5 text-smoke">Progress saves to your Bloomsbury account when signed in.</p>
           </aside>
         </div>
@@ -434,7 +444,7 @@
     zhpy:{name:"汉字 ↔ Pinyin",desc:"Character and pinyin",dirs:["zh_py","py_zh"]},
     zhen:{name:"汉字 ↔ Meaning",desc:"Character and English meaning",dirs:["zh_en","en_zh"]},
     pyen:{name:"Pinyin ↔ Meaning",desc:"Pinyin and English meaning",dirs:["py_en","en_py"]},
-    falling:{name:"Falling characters",desc:"汉字 to English meaning",dirs:[]},
+    falling:{name:"Falling characters",desc:"汉字 to meaning or pinyin",dirs:[]},
     stroke:{name:"Stroke order",desc:"Watch and draw",dirs:[]}
   };
 
@@ -467,6 +477,7 @@
     fallCorrect:$("#fallCorrect"), fallErrors:$("#fallErrors"), fallSpeed:$("#fallSpeed"),
     fallStartBtn:$("#fallStartBtn"), fallPauseBtn:$("#fallPauseBtn"),
     fallNewBtn:$("#fallNewBtn"), fallNextBtn:$("#fallNextBtn"), fallCloseBtn:$("#fallCloseBtn"),
+    fallModeEn:$("#fallModeEn"), fallModePy:$("#fallModePy"), fallModeLabel:$("#fallModeLabel"),
     fallLevelProgressText:$("#fallLevelProgressText"), fallLevelProgress:$("#fallLevelProgress"),
     fallMessage:$("#fallMessage"), fallField:$("#fallField"),
     fallStartOverlay:$("#fallStartOverlay"), fallAnswers:$("#fallAnswers"),
@@ -509,7 +520,7 @@
     return {
       scores:blankScores(), attempts:0, correct:0, lastMode:"mixed",
       falling:blankFallingStats(), stroke:blankStrokeStats(),
-      timeStudiedMs:0, sessionCount:0, updatedAt:0
+      fallingMode:"en", timeStudiedMs:0, sessionCount:0, updatedAt:0
     };
   }
 
@@ -540,6 +551,7 @@
         base.stroke.mistakes[c] = Math.max(0,Number(raw.stroke.mistakes?.[c])||0);
       }
     }
+    base.fallingMode = raw.fallingMode === "py" ? "py" : "en";
     base.timeStudiedMs = Math.max(0,Number(raw.timeStudiedMs)||0);
     base.sessionCount = Math.max(0,Number(raw.sessionCount)||0);
     base.updatedAt = Number(raw.updatedAt)||0;
@@ -557,6 +569,7 @@
   let state = loadState();
   let currentMode = state.lastMode;
   let previousMode = (currentMode === "falling" || currentMode === "stroke") ? "mixed" : currentMode;
+  let fallingTarget = state.fallingMode === "py" ? "py" : "en";
   let learnMode = false;
   let current = null;
   let locked = false;
@@ -879,6 +892,7 @@
       els.fallingArea.classList.remove("hidden");
       els.fallingArea.classList.add("falling-fullscreen");
       document.body.classList.add("falling-lock");
+      updateFallingModeUI();
       renderFallingAnswers();
       resetFallingRun(false);
       updateFallingHud();
@@ -1016,8 +1030,34 @@
   const fall = {
     running:false, paused:false, level:1, points:0, correct:0, errors:0, penalty:0,
     elapsedMs:0, lastFrame:0, lastSpawn:0, scoreRemainder:0, selectedId:null,
-    chars:new Map(), nextId:1, animationId:null, drag:null
+    chars:new Map(), nextId:1, animationId:null, drag:null, over:false
   };
+
+  function fallTargetWord(w){ return fallingTarget === "py" ? w.py : w.en; }
+  function fallTargetText(){ return fallingTarget === "py" ? "pinyin" : "English meaning"; }
+
+  function updateFallingModeUI(){
+    els.fallModeEn.classList.toggle("is-active", fallingTarget === "en");
+    els.fallModePy.classList.toggle("is-active", fallingTarget === "py");
+    els.fallModeLabel.textContent = "汉字 → " + fallTargetText();
+  }
+
+  function fallingIntroMessage(){
+    return "Tap Start. Match every character to its " + fallTargetText() +
+      " before it reaches the bottom. One miss ends the run.";
+  }
+
+  function setFallingTarget(mode){
+    fallingTarget = mode === "py" ? "py" : "en";
+    state.fallingMode = fallingTarget;
+    persistLocal();
+    updateFallingModeUI();
+    renderFallingAnswers();
+    if(!fall.running && !fall.over){
+      els.fallStartOverlay.querySelector("span").textContent = "汉字 to " + fallTargetText();
+      setFallMessage(fallingIntroMessage(),"");
+    }
+  }
 
   function levelThreshold(level){ if(level <= 1) return 0; return Math.round(90 * Math.pow(level-1,1.58)); }
   function levelBaseSpeed(level){ return .78 + .16 * Math.pow(level-1,1.12); }
@@ -1035,8 +1075,8 @@
     for(const w of WORDS){
       const b = document.createElement("button");
       b.type = "button";
-      b.className = "answer-btn min-h-[48px] rounded-xl border border-goldsoft bg-[#fffaf0] px-2 py-2 text-sm font-black transition";
-      b.textContent = w.en;
+      b.className = "answer-btn min-h-[44px] rounded-xl border border-goldsoft bg-[#fffaf0] px-1.5 py-2 text-sm font-black transition";
+      b.textContent = fallTargetWord(w);
       b.dataset.id = w.id;
       b.addEventListener("click",()=>answerFalling(w.id,b));
       els.fallAnswers.appendChild(b);
@@ -1048,16 +1088,17 @@
     if(!keepLevel) fall.level = 1;
     fall.points = 0; fall.correct = 0; fall.errors = 0; fall.penalty = 0;
     fall.elapsedMs = 0; fall.lastFrame = 0; fall.lastSpawn = 0; fall.scoreRemainder = 0;
-    fall.selectedId = null; fall.nextId = 1; fall.drag = null;
+    fall.selectedId = null; fall.nextId = 1; fall.drag = null; fall.over = false;
     clearFallingChars();
     els.fallStartOverlay.classList.remove("hidden");
     els.fallStartOverlay.querySelector("strong").textContent = "Falling Characters";
-    els.fallStartOverlay.querySelector("span").textContent = "汉字 to English meaning";
+    els.fallStartOverlay.querySelector("span").textContent = "汉字 to " + fallTargetText();
     els.fallStartBtn.disabled = false;
+    els.fallStartBtn.textContent = "Start";
     els.fallPauseBtn.disabled = true;
     els.fallPauseBtn.textContent = "Pause";
     els.fallNextBtn.disabled = true;
-    setFallMessage("Tap Start. Select a character, then its meaning. Dragging works on touch screens.","");
+    setFallMessage(fallingIntroMessage(),"");
     updateFallingHud();
     updateProgress();
   }
@@ -1099,7 +1140,7 @@
       els.fallStartOverlay.querySelector("span").textContent = `Level ${fall.level}`;
     }else{
       els.fallStartOverlay.querySelector("strong").textContent = "Falling Characters";
-      els.fallStartOverlay.querySelector("span").textContent = "汉字 to English meaning";
+      els.fallStartOverlay.querySelector("span").textContent = "汉字 to " + fallTargetText();
       startFalling();
     }
   }
@@ -1136,13 +1177,52 @@
         obj.y += dy;
         obj.el.style.transform = `translate(${obj.x}px,${obj.y}px)`;
       }
-      if(!obj.dragging && obj.y > fieldH + 12){
-        registerFallingMiss(obj.word,"missed");
-        removeFallingChar(id);
+      if(!obj.dragging && obj.y > fieldH - obj.el.offsetHeight*0.5){
+        gameOverFalling(obj);
+        return;
       }
     }
     updateFallingHud();
     fall.animationId = requestAnimationFrame(fallLoop);
+  }
+
+  function gameOverFalling(obj){
+    fall.running = false;
+    fall.paused = false;
+    fall.over = true;
+    if(fall.animationId) cancelAnimationFrame(fall.animationId);
+    fall.animationId = null;
+
+    const word = obj.word;
+    const fieldH = els.fallField.clientHeight;
+    obj.y = Math.max(0, fieldH - obj.el.offsetHeight);
+    obj.el.style.transform = `translate(${obj.x}px,${obj.y}px)`;
+    obj.el.classList.add("wrong");
+
+    fall.errors++;
+    state.falling.totalWrong[word.id] = (state.falling.totalWrong[word.id]||0)+1;
+    SYNC.attempt({
+      mode:"falling",
+      direction: fallingTarget === "py" ? "zh_py" : "zh_en",
+      wordId: word.id,
+      answer: "(reached the bottom)",
+      correct: false
+    });
+    updateHighScore();
+    saveState();
+    updateFallingHud();
+    updateProgress();
+
+    els.fallStartOverlay.classList.remove("hidden");
+    els.fallStartOverlay.querySelector("strong").textContent = "Game over";
+    els.fallStartOverlay.querySelector("span").textContent =
+      `${word.zh} (${fallTargetWord(word)}) reached the bottom · ${Math.floor(fall.points)} points`;
+    els.fallStartBtn.disabled = false;
+    els.fallStartBtn.textContent = "Play again";
+    els.fallPauseBtn.disabled = true;
+    els.fallPauseBtn.textContent = "Pause";
+    els.fallNextBtn.disabled = true;
+    setFallMessage(`Game over — ${word.zh} means ${word.en} (${word.py}). Best score ${Math.floor(state.falling.highScore)}.`,"bad");
   }
 
   function spawnFallingChar(){
@@ -1238,7 +1318,11 @@
     if(!obj){ setFallMessage("Select a falling character first.",""); return; }
     const correct = obj.word.id === wordId;
 
-    SYNC.attempt({ mode:"falling", direction:"zh_en", wordId:obj.word.id, answer:button.textContent, correct });
+    SYNC.attempt({
+      mode:"falling",
+      direction: fallingTarget === "py" ? "zh_py" : "zh_en",
+      wordId:obj.word.id, chosenId:wordId, answer:button.textContent, correct
+    });
 
     if(correct){
       fall.correct++;
@@ -1263,14 +1347,6 @@
     saveState();
     updateFallingHud();
     updateProgress();
-  }
-
-  function registerFallingMiss(word){
-    fall.errors++;
-    fall.penalty = Math.min(1.15,fall.penalty+.06);
-    state.falling.totalWrong[word.id] = (state.falling.totalWrong[word.id]||0)+1;
-    setFallMessage(`${word.zh} was missed. Speed increased.`,"bad");
-    saveState();
   }
 
   function removeFallingChar(id){
@@ -1817,10 +1893,15 @@
   els.resetBtn.addEventListener("click",resetEverything);
   els.continueBtn.addEventListener("click",()=>{ window.scrollTo({top:0,behavior:"smooth"}); });
   els.modeBtns.forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
-  els.fallStartBtn.addEventListener("click",startFalling);
+  els.fallStartBtn.addEventListener("click",()=>{
+    if(fall.over){ resetFallingRun(false); }
+    startFalling();
+  });
   els.fallPauseBtn.addEventListener("click",pauseFalling);
   els.fallNewBtn.addEventListener("click",newFallingRun);
   els.fallNextBtn.addEventListener("click",nextFallingLevel);
+  els.fallModeEn.addEventListener("click",()=>setFallingTarget("en"));
+  els.fallModePy.addEventListener("click",()=>setFallingTarget("py"));
   els.fallCloseBtn.addEventListener("click",()=>setMode(previousMode && MODES[previousMode] && previousMode!=="falling" && previousMode!=="stroke" ? previousMode : "mixed"));
   els.strokeWatchBtn.addEventListener("click",watchStroke);
   els.strokePracticeBtn.addEventListener("click",practiceStroke);

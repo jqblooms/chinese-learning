@@ -123,7 +123,8 @@ function gradeAttempt_(email, topic, now, raw) {
     }
     source = 'server';
   } else if (mode === 'falling') {
-    expected = word.en;
+    // No usable direction on the attempt: fall back to the client's judgement.
+    expected = (direction === 'zh_py') ? word.py : word.en;
     correct = raw.clientCorrect === true;
     source = 'server';
   } else {
