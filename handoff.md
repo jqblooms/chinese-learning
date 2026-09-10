@@ -2,6 +2,36 @@
 
 Living project doc. Update after every session's changes.
 
+## 2026-09-10 — navbar Quiz/Learn toggle, learn-mode dedup, mobile type pass
+
+- **Quiz / Learn is now a segmented toggle in the top header**
+  (`#modeToggle`, `.lm-seg`), full-width on its own row on mobile, inline
+  on desktop. `setLearnMode(bool)` is the single entry point;
+  `syncLearnUI()` keeps the old aside `#learnBtn` in step; the toggle
+  hides in Falling / Stroke (no learn mode there). `toggleLearn()` is now
+  just `setLearnMode(!learnMode)`.
+- **Learn-mode answer duplication fixed.** The answer line was
+  `Answer: <target>  <zh> <py> <en>`, so in some directions the target
+  value (and the character) showed twice ("long long", 龙 twice). It is
+  now `Answer:  <zh>  ·  <py>  ·  <en>` — each once. Also `pickChoiceWords`
+  takes the `to` field and de-dupes options by rendered text, so no two
+  choices ever read the same (matters for the Y11 units where some
+  glosses collide).
+- **Mobile type pass.** The 375px layout fit but read as tiny on a real
+  phone. Added `@media (max-width:640px)`: base 15.5px, and
+  `!important` bumps for `text-[10px]` / `text-[11px]` / `text-xs` /
+  `text-sm` (the `!important` is because the Tailwind CDN injects its
+  utilities after our `<style>`), plus 46px min tap targets on the main
+  button classes. Note: could not reproduce an *extreme* scaled-down
+  "tiny" in the browser emulator — the served top page does carry the
+  propagated `<meta viewport>` and content renders at 375px, not scaled.
+  If a real device still shows everything shrunk, that is the GAS
+  nested-`userHtmlFrame` not inheriting the viewport (a long-standing GAS
+  mobile limitation); the practical answer there is "Add to Home Screen",
+  or revisit `HtmlService` sandbox options.
+- `Code.gs` viewport meta simplified to
+  `width=device-width, initial-scale=1` (dropped `viewport-fit=cover`).
+
 ## 2026-09-10 — Year 11 units + multi-topic engine + web-app access fix
 
 ### Web-app access — "not accessible" fix

@@ -43,7 +43,7 @@ var CL_LOCK_TIMEOUT_MS = 25000;
 function doGet(e) {
   return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('Chinese Learning')
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1, viewport-fit=cover');
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
 /** Small identity payload used by the client to enable or disable saving. */

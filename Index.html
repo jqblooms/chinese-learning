@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#8f1d1d">
   <title>Chinese Learning</title>
 
@@ -130,6 +130,20 @@
     .fall-seg.is-active { background: #9b2c20; color: #fff; }
     .fall-seg + .fall-seg { border-left: 1px solid #d6bd78; }
 
+    .lm-seg { background: #fffaf0; color: #6f675f; }
+    .lm-seg.is-active { background: #9b2c20; color: #fff; }
+    .lm-seg + .lm-seg { border-left: 1px solid #d6bd78; }
+
+    /* Phone comfort: the layout fits 375px but the small print needs bumping */
+    @media (max-width: 640px) {
+      body { font-size: 15.5px; }
+      .text-\[10px\] { font-size: 11.5px !important; }
+      .text-\[11px\] { font-size: 12.5px !important; }
+      .text-xs  { font-size: 13.5px !important; }
+      .text-sm  { font-size: 15px !important; }
+      .modeBtn, .choice-btn, .answer-btn, .topic-btn, .lm-seg { min-height: 46px; }
+    }
+
     @media (prefers-reduced-motion: reduce) { * { scroll-behavior:auto !important; transition:none !important; } }
   </style>
 </head>
@@ -178,7 +192,7 @@
 
     <!-- Main column -->
     <div class="flex min-w-0 flex-1 flex-col">
-      <header class="sticky top-0 z-20 flex items-center gap-2 border-b border-goldsoft bg-paper/95 px-3 py-2.5 backdrop-blur sm:gap-3 sm:px-4 sm:py-3">
+      <header class="sticky top-0 z-20 flex flex-wrap items-center gap-2 border-b border-goldsoft bg-paper/95 px-3 py-2.5 backdrop-blur sm:gap-3 sm:px-4 sm:py-3">
         <button id="sidebarOpen" type="button" class="shrink-0 rounded-lg border border-goldsoft bg-[#fffaf0] p-2 lg:hidden" aria-label="Open menu">
           <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
@@ -186,9 +200,13 @@
           <h1 id="topicTitle" class="truncate text-base font-black sm:text-xl">Animals</h1>
           <p id="topicWords" class="han truncate text-xs text-smoke sm:text-sm">狗 猫 金鱼 兔子 鸟 蛇 马 熊猫 龙</p>
         </div>
-        <div id="saveStatus" class="ml-auto hidden shrink-0 items-center gap-1.5 rounded-full border border-goldsoft bg-[#fffaf0] px-2 py-1.5 text-xs font-bold text-smoke sm:px-3">
+        <div id="saveStatus" class="hidden shrink-0 items-center gap-1.5 rounded-full border border-goldsoft bg-[#fffaf0] px-2 py-1.5 text-xs font-bold text-smoke sm:px-3">
           <span id="saveDot" class="h-2 w-2 rounded-full bg-smoke"></span>
           <span id="saveText" class="hidden sm:inline">Saved on this device</span>
+        </div>
+        <div id="modeToggle" class="order-last flex w-full overflow-hidden rounded-lg border border-goldsoft sm:order-none sm:w-auto">
+          <button id="quizModeBtn" type="button" class="lm-seg flex-1 px-4 py-2 text-sm font-black sm:flex-none">Quiz</button>
+          <button id="learnModeBtn" type="button" class="lm-seg flex-1 px-4 py-2 text-sm font-black sm:flex-none">Learn</button>
         </div>
       </header>
 
@@ -633,6 +651,7 @@
 
   const els = {
     learnBtn:$("#learnBtn"), speakBtn:$("#speakBtn"), resetBtn:$("#resetBtn"),
+    modeToggle:$("#modeToggle"), quizModeBtn:$("#quizModeBtn"), learnModeBtn:$("#learnModeBtn"),
     modeBtns:$$(".modeBtn"),
     standardArea:$("#standardArea"), completeArea:$("#completeArea"),
     fallingArea:$("#fallingArea"), strokeArea:$("#strokeArea"),
@@ -942,7 +961,7 @@
     if(!candidates.length){ showComplete(); return; }
     const chosen = weightedChoice(candidates);
     const word = WORDS.find(w=>w.id===chosen.id);
-    current = {word, dir:chosen.dir, choices:pickChoiceWords(word)};
+    current = {word, dir:chosen.dir, choices:pickChoiceWords(word, DIRECTIONS[chosen.dir].to)};
     recentPairs.push(chosen.id+":"+chosen.dir);
     if(recentPairs.length > 6) recentPairs.shift();
     locked = false;
@@ -968,7 +987,7 @@
       els.supportLine.textContent = d.to === "zh" ? "Choose the Chinese character." : "Choose the pinyin.";
     }
     els.learnAnswer.hidden = !learnMode;
-    els.learnAnswer.textContent = `Answer: ${getValue(w,d.to)}   ${w.zh}   ${w.py}   ${w.en}`;
+    els.learnAnswer.textContent = `Answer:  ${w.zh}  ·  ${w.py}  ·  ${w.en}`;
     els.roundLabel.textContent = learnMode ? "Learn mode" : "Quiz mode";
     els.modeNote.textContent = learnMode ? "Answer shown. Practice taps do not count." : "3 correct answers per direction.";
     renderChoices();
@@ -977,9 +996,19 @@
 
   // The correct word plus up to 5 random distractors, shuffled. Keeps the
   // choice grid usable for large topics (40+ words) instead of listing all.
-  function pickChoiceWords(correctWord){
+  function pickChoiceWords(correctWord, toField){
     const n = Math.min(WORDS.length, 6);
-    const pool = WORDS.filter(w => w.id !== correctWord.id);
+    // Skip any distractor that would render the same text as the answer or
+    // as another option in this direction, so no option appears twice.
+    const seen = new Set([getValue(correctWord, toField)]);
+    const pool = [];
+    for(const w of WORDS){
+      if(w.id === correctWord.id) continue;
+      const v = getValue(w, toField);
+      if(seen.has(v)) continue;
+      seen.add(v);
+      pool.push(w);
+    }
     for(let i = pool.length - 1; i > 0; i--){
       const j = Math.floor(Math.random() * (i + 1));
       [pool[i], pool[j]] = [pool[j], pool[i]];
@@ -1098,6 +1127,8 @@
     els.learnBtn.classList.toggle("cursor-not-allowed",special);
     els.speakBtn.classList.toggle("opacity-40",special);
     els.speakBtn.classList.toggle("cursor-not-allowed",special);
+    updateModeToggleVisibility();
+    syncLearnUI();
 
     if(mode === "falling"){
       els.fallingArea.classList.remove("hidden");
@@ -1212,14 +1243,27 @@
     else speak(current.word.en,"en-GB",.9);
   }
 
-  function toggleLearn(){
-    if(currentMode === "falling" || currentMode === "stroke") return;
-    learnMode = !learnMode;
+  function syncLearnUI(){
+    els.quizModeBtn.classList.toggle("is-active", !learnMode);
+    els.learnModeBtn.classList.toggle("is-active", learnMode);
     els.learnBtn.textContent = `Learn mode: ${learnMode ? "On" : "Off"}`;
     els.learnBtn.classList.toggle("ring-2",learnMode);
     els.learnBtn.classList.toggle("ring-gold",learnMode);
+  }
+
+  function updateModeToggleVisibility(){
+    const special = currentMode === "falling" || currentMode === "stroke";
+    els.modeToggle.classList.toggle("hidden", special);
+  }
+
+  function setLearnMode(on){
+    if(currentMode === "falling" || currentMode === "stroke") return;
+    learnMode = !!on;
+    syncLearnUI();
     if(current) renderQuestion();
   }
+
+  function toggleLearn(){ setLearnMode(!learnMode); }
 
   function resetEverything(){
     if(!confirm(`Reset your progress for "${CURRICULUM[currentTopic].title}"?`)) return;
@@ -2213,6 +2257,8 @@
 
   /* ---------------- Events ---------------- */
   els.learnBtn.addEventListener("click",toggleLearn);
+  els.quizModeBtn.addEventListener("click",()=>setLearnMode(false));
+  els.learnModeBtn.addEventListener("click",()=>setLearnMode(true));
   els.speakBtn.addEventListener("click",speakPrompt);
   els.chineseAudio.addEventListener("click",speakChinese);
   els.ukAudio.addEventListener("click",speakUKGuide);
