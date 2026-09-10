@@ -246,7 +246,7 @@
           </div>
         </section>
 
-        <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div>
           <section class="paper-grain rounded-3xl border border-goldsoft bg-paper p-3 shadow-paper sm:p-5">
             <div id="standardArea">
               <div class="mb-3 flex flex-col gap-2 text-sm text-smoke sm:flex-row sm:items-center sm:justify-between">
@@ -359,26 +359,28 @@
             </section>
           </section>
 
-          <aside class="paper-grain rounded-3xl border border-goldsoft bg-paper p-4 shadow-paper">
-            <div class="mb-3 flex items-center gap-2">
-              <svg class="h-6 w-6 text-jade" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V9m7 10V5m7 14v-7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
-              <h2 class="font-black">Progress</h2>
-              <button id="learnBtn" type="button" class="ml-auto rounded-lg border border-goldsoft bg-[#fffaf0] px-2.5 py-1.5 text-xs font-bold">Learn mode: Off</button>
-            </div>
-            <div class="mb-3 flex flex-wrap gap-2">
+        </div>
+
+        <details id="progressPanel" class="paper-grain mt-4 rounded-2xl border border-goldsoft bg-paper p-4 shadow-paper">
+          <summary class="cursor-pointer font-black">
+            Progress
+            <span class="float-right text-sm font-bold">
+              <span id="overallLabel" class="text-smoke">Completed</span>
+              <span id="overallValue">0/9</span>
+            </span>
+          </summary>
+          <div class="mt-3">
+            <div class="h-3 overflow-hidden rounded-full border border-goldsoft bg-[#ead9b7]"><div id="progressFill" class="h-full bg-cinnabar transition-[width] duration-300" style="width:0%"></div></div>
+            <div class="mb-3 mt-3 flex flex-wrap gap-2">
               <button id="speakBtn" type="button" class="rounded-lg border border-goldsoft bg-[#fffaf0] px-2.5 py-1.5 text-xs font-bold">🔊 Speak</button>
               <button id="resetBtn" type="button" class="rounded-lg border border-goldsoft bg-[#fffaf0] px-2.5 py-1.5 text-xs font-bold">Reset topic</button>
+              <button id="learnBtn" type="button" class="rounded-lg border border-goldsoft bg-[#fffaf0] px-2.5 py-1.5 text-xs font-bold">Learn mode: Off</button>
             </div>
             <div id="sideMode" class="mb-3 text-sm text-smoke"></div>
-            <div class="h-3 overflow-hidden rounded-full border border-goldsoft bg-[#ead9b7]"><div id="progressFill" class="h-full bg-cinnabar transition-[width] duration-300" style="width:0%"></div></div>
-            <div class="mb-4 mt-2 flex items-end justify-between gap-3">
-              <span id="overallLabel" class="text-sm text-smoke">Completed</span>
-              <strong id="overallValue" class="text-2xl">0/9</strong>
-            </div>
-            <div id="miniList" class="grid gap-2 sm:grid-cols-2 lg:max-h-[520px] lg:grid-cols-1 lg:overflow-auto"></div>
+            <div id="miniList" class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"></div>
             <p id="sideNote" class="mt-4 text-xs leading-5 text-smoke">Progress saves to your Bloomsbury account when signed in.</p>
-          </aside>
-        </div>
+          </div>
+        </details>
 
         <details id="grammarPanel" class="paper-grain mt-4 hidden rounded-2xl border border-goldsoft bg-paper p-4 shadow-paper">
           <summary class="cursor-pointer font-black">Sentence patterns for this unit</summary>
@@ -1065,6 +1067,7 @@
     sideMode:$("#sideMode"), progressFill:$("#progressFill"),
     overallLabel:$("#overallLabel"), overallValue:$("#overallValue"),
     miniList:$("#miniList"), sideNote:$("#sideNote"), wordRows:$("#wordRows"),
+    progressPanel:$("#progressPanel"),
     grammarPanel:$("#grammarPanel"), grammarRows:$("#grammarRows"),
     topicTitle:$("#topicTitle"), topicWords:$("#topicWords"),
     saveStatus:$("#saveStatus"), saveDot:$("#saveDot"), saveText:$("#saveText"),
@@ -1563,6 +1566,7 @@
       els.overallValue.textContent = String(state.falling.bestLevel);
       els.progressFill.style.width = `${Math.min(100,state.falling.bestLevel/12*100)}%`;
       els.sideNote.textContent = "Counts show total correct falling matches.";
+      if(!els.progressPanel.open) return;
       els.miniList.innerHTML = "";
       for(const w of WORDS){
         const good = state.falling.totalCorrect[w.id] || 0;
@@ -1586,6 +1590,7 @@
       els.overallValue.textContent = `${completedWords}/${WORDS.length}`;
       els.progressFill.style.width = `${completedWords/WORDS.length*100}%`;
       els.sideNote.textContent = "Each character needs 3 completed drawings.";
+      if(!els.progressPanel.open) return;
       els.miniList.innerHTML = "";
       for(const w of WORDS){
         const chars = Array.from(w.zh);
@@ -1612,6 +1617,7 @@
     els.sideNote.textContent = HAS_BACKEND
       ? "Progress saves to your Bloomsbury account when signed in."
       : "Progress saves in this browser.";
+    if(!els.progressPanel.open) return;
     els.miniList.innerHTML = "";
     for(const w of WORDS){
       const card = document.createElement("div");
@@ -2810,6 +2816,7 @@
   });
   els.signinClose.addEventListener("click",hideSigninModal);
   els.signinModal.addEventListener("click",e=>{ if(e.target===els.signinModal) hideSigninModal(); });
+  els.progressPanel.addEventListener("toggle",()=>{ if(els.progressPanel.open) updateProgress(); });
 
   if("speechSynthesis" in window) speechSynthesis.onvoiceschanged=()=>{};
 
