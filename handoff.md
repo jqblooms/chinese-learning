@@ -2,6 +2,59 @@
 
 Living project doc. Update after every session's changes.
 
+## 2026-09-11 — stroke mode rebuilt full-screen; mobile viewport fixes
+
+**Not yet deployed** — clasp auth expired mid-session (`invalid_grant` /
+`invalid_rapt`). Code is committed + pushed to GitHub. To ship: `clasp
+login` (interactive, browser OAuth), then `clasp push --force` and
+`clasp update-deployment -d "…" AKfycbxM5ZmyrpPP_PikikX9_yPdDPpFn0Glbt0ki8Ap04MTa-EhWVBeB488KITuDFMlubTw`.
+Last live deployment is still **@24**.
+
+James reported drawing mode on his phone: everything tiny ("like a
+zoomed-out desktop"), the canvas fought the page's scroll, the canvas was
+too small, and finishing a character with mistakes still counted as done.
+
+- **Stroke practice is now a full-screen panel** like Falling — `#strokeArea`
+  gets `.stroke-fullscreen` (`position:fixed; inset:0; z-index:60`) and
+  `body.stroke-lock { overflow:hidden }` in `setMode`, both cleared on the
+  way out. New **Exit** button (`#strokeCloseBtn`) + Escape both leave via
+  `setMode(previousMode…)`, mirroring `fallCloseBtn`.
+- **Layout** rebuilt as a flex column: compact `.stroke-head` (word ·
+  pinyin · meaning · `N/3 clean` pill · Exit), `.stroke-tabs`, a
+  `.stroke-scene` that flexes to fill height with the grid centred, and a
+  `.stroke-foot` (status line + 4-up control bar + tiny stat row). The old
+  desktop `md:grid-cols-[…360px_1fr]` two-column layout is gone.
+- **Canvas size**: `#strokeCanvasWrap` is `height:100%; aspect-ratio:1/1;
+  max-width:min(94vw,560px)`. `renderStrokeWriter` measures the wrap's
+  rendered box (`min(width,height)`), clamps 180–560 (was capped at 350),
+  and builds HanziWriter at that px size with proportional
+  `padding`/`drawingWidth`. On a 375px phone the grid is now ~345px (was
+  ~220–280). A `requestAnimationFrame` re-measure covers Tailwind settling
+  a frame late at boot.
+- **Touch vs scroll**: `#strokeCanvas, #strokeCanvas svg, #strokeCanvasWrap
+  { touch-action:none }` so a tracing finger never pans/zooms the page;
+  combined with the scroll lock this stops the fight entirely.
+- **Mistakes no longer count**: `practiceStroke`'s `onComplete` only
+  increments `state.stroke.reps[c]` when `data.totalMistakes === 0` (a
+  "clean run"). Slips still accumulate into `state.stroke.mistakes[c]` for
+  the teacher view. `SYNC.attempt` now sends `correct: clean`. Pills and
+  copy say "clean" not "complete"; status messages spell out
+  "N slips that time — this one does not count."
+- **Resize**: `orientationchange` + `visualViewport` resize now also
+  re-fit the writer; a 12px dead-band ignores mobile URL-bar jitter and a
+  running quiz is never wiped.
+- **Viewport / "desktop mode"**: added `viewport-fit=cover`, a tiny
+  head script that re-asserts the viewport meta, and `html,body{
+  max-width:100%; overflow-x:hidden }`. If a phone still reports a ~980px
+  viewport (browser "Request desktop site" — which script cannot override)
+  a dismissible banner `#desktopSiteWarn` explains how to turn it off
+  (`looksLikeForcedDesktop()`: coarse pointer + innerWidth ≥ 900 +
+  innerWidth − screen.width > 200; dismissal stored in
+  `chineseLearning:v1:desktopWarnDismissed`).
+- **Mobile polish**: practice-mode buttons drop their sub-labels under
+  640px (`.modeBtn-sub` hidden) and centre their text; tap targets bumped
+  to 48px min; base font 16px; `#prompt` forced to 3.6rem on phones.
+
 ## 2026-09-10 — sound guides for every word (generated from pinyin)
 
 - **Every word in every topic now has a pronunciation guide + tone note.**

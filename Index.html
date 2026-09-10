@@ -2,9 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#8f1d1d">
   <title>Chinese Learning</title>
+
+  <script>
+    (function(){
+      try{
+        var m = document.querySelector('meta[name="viewport"]');
+        if(!m){ m = document.createElement('meta'); m.setAttribute('name','viewport'); document.head.appendChild(m); }
+        m.setAttribute('content','width=device-width, initial-scale=1, viewport-fit=cover');
+      }catch(e){}
+    })();
+  </script>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
@@ -39,6 +49,7 @@
 
   <style>
     html { -webkit-text-size-adjust: 100%; }
+    html, body { max-width: 100%; overflow-x: hidden; }
     body {
       background:
         radial-gradient(circle at 16% 0%, rgba(255,255,255,.72), transparent 28rem),
@@ -125,6 +136,45 @@
     #fallingArea.falling-fullscreen .falling-meanings { flex: 0 0 auto; }
     body.falling-lock { overflow: hidden; }
 
+    /* Stroke practice also takes over the viewport: one column, a canvas
+       that fills the space between a compact header and a control bar. */
+    #strokeArea.stroke-fullscreen {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      padding: max(.55rem, env(safe-area-inset-top)) clamp(.55rem, 3vw, 1.4rem)
+               max(.55rem, env(safe-area-inset-bottom));
+      background: linear-gradient(180deg, #f8f1df 0%, #f1e1c2 100%);
+      overflow: hidden;
+      overscroll-behavior: contain;
+    }
+    #strokeArea.stroke-fullscreen .stroke-scene {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #strokeArea.stroke-fullscreen #strokeCanvasWrap {
+      width: auto;
+      height: 100%;
+      max-width: min(94vw, 560px);
+      max-height: min(94vw, 560px);
+      aspect-ratio: 1 / 1;
+    }
+    #strokeArea.stroke-fullscreen .stroke-head,
+    #strokeArea.stroke-fullscreen .stroke-tabs,
+    #strokeArea.stroke-fullscreen .stroke-foot { flex: 0 0 auto; }
+    body.stroke-lock { overflow: hidden; }
+
+    /* The drawing surface must own every touch: no page pan/zoom while
+       a finger is tracing a stroke. */
+    #strokeCanvas, #strokeCanvas svg { touch-action: none; -ms-touch-action: none; }
+    #strokeCanvasWrap { touch-action: none; }
+
     .fall-seg { background: #fffaf0; color: #201a17; }
     .fall-seg.is-active { background: #9b2c20; color: #fff; }
     .fall-seg + .fall-seg { border-left: 1px solid #d6bd78; }
@@ -133,14 +183,37 @@
     .lm-seg.is-active { background: #9b2c20; color: #fff; }
     .lm-seg + .lm-seg { border-left: 1px solid #d6bd78; }
 
-    /* Phone comfort: the layout fits 375px but the small print needs bumping */
+    /* "Request desktop site" banner — shown only when the layout viewport
+       comes back far wider than the physical screen (meta ignored). */
+    #desktopSiteWarn {
+      display: none;
+      margin: .5rem auto 0;
+      width: min(680px, 94vw);
+      border: 1px solid #d6bd78;
+      background: #fff7dc;
+      color: #7b5718;
+      border-radius: .75rem;
+      padding: .6rem .85rem;
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+    body.is-desktop-site #desktopSiteWarn { display: block; }
+    #desktopSiteWarn button { text-decoration: underline; font-weight: 800; }
+
+    /* Phone comfort: bump small print, enlarge every tap target, and give
+       the practice card room by dropping the button sub-labels. */
     @media (max-width: 640px) {
-      body { font-size: 15.5px; }
-      .text-\[10px\] { font-size: 11.5px !important; }
-      .text-\[11px\] { font-size: 12.5px !important; }
+      body { font-size: 16px; }
+      .text-\[10px\] { font-size: 12px !important; }
+      .text-\[11px\] { font-size: 13px !important; }
       .text-xs  { font-size: 13.5px !important; }
       .text-sm  { font-size: 15px !important; }
-      .modeBtn, .choice-btn, .answer-btn, .topic-btn, .lm-seg { min-height: 46px; }
+      .modeBtn, .choice-btn, .answer-btn, .topic-btn, .lm-seg,
+      #strokeWatchBtn, #strokePracticeBtn, #strokeOutlineBtn, #strokeNextBtn { min-height: 48px; }
+      .modeBtn { display: flex; align-items: center; text-align: center; justify-content: center; }
+      .modeBtn .modeBtn-sub { display: none; }
+      #prompt { font-size: 3.6rem !important; }
     }
 
     @media (prefers-reduced-motion: reduce) { * { scroll-behavior:auto !important; transition:none !important; } }
@@ -207,6 +280,12 @@
         </div>
       </header>
 
+      <div id="desktopSiteWarn" role="alert">
+        This page is loading in desktop mode, so everything looks small.
+        In your browser menu, turn off <strong>“Request desktop site”</strong> for this page, then reload.
+        <button id="desktopSiteDismiss" type="button">Hide</button>
+      </div>
+
       <!-- Locked-topic panel -->
       <section id="lockedPanel" class="mx-auto hidden w-[min(680px,92vw)] px-4 py-16 text-center">
         <div class="mx-auto mb-4 w-fit rounded-full bg-[#fff7dc] p-4 text-4xl">課</div>
@@ -226,22 +305,22 @@
           </div>
           <div class="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
             <button class="modeBtn rounded-xl border border-goldsoft bg-cinnabar px-3 py-3 text-left font-black text-white shadow-seal" data-mode="pyen" type="button">
-              Pinyin ↔ Meaning <span class="mt-1 block text-xs font-semibold text-red-100">Pinyin and English</span>
+              Pinyin ↔ Meaning <span class="modeBtn-sub mt-1 block text-xs font-semibold text-red-100">Pinyin and English</span>
             </button>
             <button class="modeBtn rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-3 text-left font-black" data-mode="zhpy" type="button">
-              汉字 ↔ Pinyin <span class="mt-1 block text-xs font-semibold text-smoke">Character and pinyin</span>
+              汉字 ↔ Pinyin <span class="modeBtn-sub mt-1 block text-xs font-semibold text-smoke">Character and pinyin</span>
             </button>
             <button class="modeBtn rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-3 text-left font-black" data-mode="zhen" type="button">
-              汉字 ↔ Meaning <span class="mt-1 block text-xs font-semibold text-smoke">Character and English</span>
+              汉字 ↔ Meaning <span class="modeBtn-sub mt-1 block text-xs font-semibold text-smoke">Character and English</span>
             </button>
             <button class="modeBtn rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-3 text-left font-black" data-mode="falling" type="button">
-              Falling characters <span class="mt-1 block text-xs font-semibold text-smoke">汉字 to meaning</span>
+              Falling characters <span class="modeBtn-sub mt-1 block text-xs font-semibold text-smoke">汉字 to meaning</span>
             </button>
             <button class="modeBtn rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-3 text-left font-black" data-mode="stroke" type="button">
-              Stroke order <span class="mt-1 block text-xs font-semibold text-smoke">Watch and draw</span>
+              Stroke order <span class="modeBtn-sub mt-1 block text-xs font-semibold text-smoke">Watch and draw</span>
             </button>
             <button class="modeBtn rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-3 text-left font-black" data-mode="mixed" type="button">
-              Mixed mastery <span class="mt-1 block text-xs font-semibold text-smoke">All 6 directions</span>
+              Mixed mastery <span class="modeBtn-sub mt-1 block text-xs font-semibold text-smoke">All 6 directions</span>
             </button>
           </div>
         </section>
@@ -323,37 +402,38 @@
             </section>
 
             <section id="strokeArea" class="hidden">
-              <div class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <div class="text-xs font-black uppercase tracking-[0.1em] text-smoke">Stroke order</div>
-                  <div class="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                    <span id="strokeWord" class="han text-3xl font-black">狗</span>
+              <div class="stroke-head flex items-center gap-2">
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
+                    <span id="strokeWord" class="han text-2xl font-black leading-none sm:text-3xl">狗</span>
                     <span id="strokePinyin" class="font-black text-cinnabar">gǒu</span>
-                    <span id="strokeMeaning" class="text-smoke">dog</span>
+                    <span id="strokeMeaning" class="truncate text-sm text-smoke">dog</span>
                   </div>
                 </div>
-                <div id="strokeReps" class="w-fit rounded-full border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-sm font-black">0/3 complete</div>
+                <div id="strokeReps" class="shrink-0 rounded-full border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-xs font-black sm:text-sm">0/3 clean</div>
+                <button id="strokeCloseBtn" type="button" class="shrink-0 rounded-lg border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-sm font-bold">Exit</button>
               </div>
-              <div id="strokeCharTabs" class="mb-3 flex flex-wrap gap-2"></div>
-              <div class="grid gap-4 md:grid-cols-[minmax(260px,360px)_1fr]">
-                <div class="mx-auto w-full max-w-[360px]">
-                  <div id="strokeCanvasWrap" class="tian-grid aspect-square w-full overflow-hidden rounded-2xl border-2 border-cinnabar/50 shadow-inner">
-                    <div id="strokeCanvas" class="h-full w-full"></div>
-                  </div>
+
+              <div id="strokeCharTabs" class="stroke-tabs flex flex-wrap gap-2"></div>
+
+              <div class="stroke-scene">
+                <div id="strokeCanvasWrap" class="tian-grid aspect-square w-full max-w-[min(78vh,520px)] overflow-hidden rounded-2xl border-2 border-cinnabar/50 shadow-inner">
+                  <div id="strokeCanvas" class="h-full w-full"></div>
                 </div>
-                <div class="flex flex-col justify-center">
-                  <div id="strokeStatus" class="mb-3 min-h-[52px] rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-3 text-center text-sm leading-6 text-smoke" aria-live="polite">Watch the stroke order, then practise drawing it.</div>
-                  <div class="grid grid-cols-2 gap-2">
-                    <button id="strokeWatchBtn" type="button" class="rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-3 font-black">Watch</button>
-                    <button id="strokePracticeBtn" type="button" class="rounded-xl bg-cinnabar px-3 py-3 font-black text-white shadow-seal">Practice</button>
-                    <button id="strokeOutlineBtn" type="button" class="rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-3 font-black">Hide outline</button>
-                    <button id="strokeNextBtn" type="button" class="rounded-xl border border-jade bg-jade px-3 py-3 font-black text-white">Next</button>
-                  </div>
-                  <div class="mt-4 rounded-xl border border-goldsoft bg-[#efe0c2] p-3 text-sm leading-6 text-smoke">
-                    <div>Current character: <strong id="strokeCurrentChar" class="han text-ink">狗</strong></div>
-                    <div>Mistakes this try: <strong id="strokeMistakes" class="text-ink">0</strong></div>
-                    <div>Correct strokes: <strong id="strokeCorrectStrokes" class="text-ink">0</strong></div>
-                  </div>
+              </div>
+
+              <div class="stroke-foot">
+                <div id="strokeStatus" class="mb-2 min-h-[44px] rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-2 text-center text-sm leading-6 text-smoke" aria-live="polite">Watch the stroke order, then trace it in the grid.</div>
+                <div class="grid grid-cols-4 gap-2">
+                  <button id="strokeWatchBtn" type="button" class="rounded-xl border border-goldsoft bg-[#fffaf0] px-2 py-3 text-sm font-black">Watch</button>
+                  <button id="strokePracticeBtn" type="button" class="rounded-xl bg-cinnabar px-2 py-3 text-sm font-black text-white shadow-seal">Practice</button>
+                  <button id="strokeOutlineBtn" type="button" class="rounded-xl border border-goldsoft bg-[#fffaf0] px-2 py-3 text-sm font-black">Hide outline</button>
+                  <button id="strokeNextBtn" type="button" class="rounded-xl border border-jade bg-jade px-2 py-3 text-sm font-black text-white">Next</button>
+                </div>
+                <div class="mt-2 flex items-center justify-center gap-4 text-xs font-bold text-smoke">
+                  <span>Char <strong id="strokeCurrentChar" class="han text-ink">狗</strong></span>
+                  <span>Slips this try <strong id="strokeMistakes" class="text-ink">0</strong></span>
+                  <span>Strokes <strong id="strokeCorrectStrokes" class="text-ink">0</strong></span>
                 </div>
               </div>
             </section>
@@ -1186,7 +1266,8 @@
     strokeStatus:$("#strokeStatus"), strokeWatchBtn:$("#strokeWatchBtn"),
     strokePracticeBtn:$("#strokePracticeBtn"), strokeOutlineBtn:$("#strokeOutlineBtn"),
     strokeNextBtn:$("#strokeNextBtn"), strokeCurrentChar:$("#strokeCurrentChar"),
-    strokeMistakes:$("#strokeMistakes"), strokeCorrectStrokes:$("#strokeCorrectStrokes")
+    strokeMistakes:$("#strokeMistakes"), strokeCorrectStrokes:$("#strokeCorrectStrokes"),
+    strokeCloseBtn:$("#strokeCloseBtn")
   };
 
   function blankScores(){
@@ -1618,7 +1699,9 @@
     els.fallingArea.classList.add("hidden");
     els.fallingArea.classList.remove("falling-fullscreen");
     els.strokeArea.classList.add("hidden");
+    els.strokeArea.classList.remove("stroke-fullscreen");
     document.body.classList.remove("falling-lock");
+    document.body.classList.remove("stroke-lock");
 
     const special = mode === "falling" || mode === "stroke";
     els.learnBtn.disabled = special;
@@ -1640,6 +1723,8 @@
       updateFallingHud();
     }else if(mode === "stroke"){
       els.strokeArea.classList.remove("hidden");
+      els.strokeArea.classList.add("stroke-fullscreen");
+      document.body.classList.add("stroke-lock");
       openStrokeWord(stroke.wordIndex,stroke.charIndex);
     }else{
       els.standardArea.classList.remove("hidden");
@@ -1679,7 +1764,7 @@
       els.overallLabel.textContent = "Completed";
       els.overallValue.textContent = `${completedWords}/${WORDS.length}`;
       els.progressFill.style.width = `${completedWords/WORDS.length*100}%`;
-      els.sideNote.textContent = "Each character needs 3 completed drawings.";
+      els.sideNote.textContent = "Each character needs 3 clean drawings (no slips).";
       if(!els.progressPanel.open) return;
       els.miniList.innerHTML = "";
       for(const w of WORDS){
@@ -2222,7 +2307,7 @@
     els.strokePinyin.textContent = w.py;
     els.strokeMeaning.textContent = w.en;
     els.strokeCurrentChar.textContent = c;
-    els.strokeReps.textContent = `${state.stroke.reps[c]||0}/${TARGET} complete`;
+    els.strokeReps.textContent = `${state.stroke.reps[c]||0}/${TARGET} clean`;
     els.strokeMistakes.textContent = "0";
     els.strokeCorrectStrokes.textContent = "0";
     els.strokeCharTabs.innerHTML = "";
@@ -2252,17 +2337,21 @@
       return;
     }
     const rect = els.strokeCanvasWrap.getBoundingClientRect();
-    const size = Math.max(220,Math.min(350,Math.floor(rect.width || 300)));
+    const box = Math.min(rect.width || 0, rect.height || 0);
+    const size = Math.max(180, Math.min(560, Math.floor(box || 300)));
+    stroke.builtChar = c;
     els.strokeCanvas.style.width = size+"px";
     els.strokeCanvas.style.height = size+"px";
     els.strokeCanvas.style.margin = "0 auto";
+    stroke.lastSize = size;
     try{
       stroke.writer = HanziWriter.create("strokeCanvas",c,{
-        width:size, height:size, padding:18,
+        width:size, height:size, padding:Math.round(size*0.06),
         showCharacter:false, showOutline:stroke.showOutline,
         strokeColor:"#201a17", outlineColor:"#d8c8aa",
         radicalColor:"#315b50", highlightColor:"#9b2c20",
-        drawingColor:"#9b2c20", drawingWidth:5,
+        drawingColor:"#9b2c20", drawingWidth:Math.max(6,Math.round(size*0.03)),
+        leniency:1.1,
         strokeAnimationSpeed:1.1, delayBetweenStrokes:260,
         showHintAfterMisses:2, highlightOnComplete:true, highlightCompleteColor:"#315b50",
         onLoadCharDataSuccess:()=>{ els.strokeStatus.textContent = "Ready."; },
@@ -2271,6 +2360,14 @@
     }catch{
       els.strokeStatus.textContent = "Stroke practice could not start.";
     }
+    // Tailwind / fonts can settle a frame late at boot: re-measure once.
+    requestAnimationFrame(()=>{
+      if(currentMode !== "stroke" || stroke.quizRunning) return;
+      if(stroke.builtChar !== activeStrokeChar()) return;
+      const r = els.strokeCanvasWrap.getBoundingClientRect();
+      const b = Math.floor(Math.min(r.width || 0, r.height || 0));
+      if(b && Math.abs(b - (stroke.lastSize || 0)) >= 12) renderStrokeWriter();
+    });
   }
 
   function watchStroke(){
@@ -2307,15 +2404,24 @@
         onComplete:data=>{
           stroke.quizRunning = false;
           const c = activeStrokeChar();
-          state.stroke.reps[c] = Math.min(TARGET,(state.stroke.reps[c]||0)+1);
-          state.stroke.mistakes[c] = (state.stroke.mistakes[c]||0) + (data.totalMistakes||0);
-          els.strokeReps.textContent = `${state.stroke.reps[c]}/${TARGET} complete`;
-          els.strokeStatus.textContent = data.totalMistakes
-            ? `Complete with ${data.totalMistakes} mistakes.`
-            : "Complete with no mistakes.";
+          const slips = data.totalMistakes || 0;
+          const clean = slips === 0;
+          state.stroke.mistakes[c] = (state.stroke.mistakes[c]||0) + slips;
+          if(clean){
+            state.stroke.reps[c] = Math.min(TARGET,(state.stroke.reps[c]||0)+1);
+          }
+          const reps = state.stroke.reps[c] || 0;
+          els.strokeReps.textContent = `${reps}/${TARGET} clean`;
+          if(clean && reps >= TARGET){
+            els.strokeStatus.textContent = "Clean run — character complete. Tap Next.";
+          }else if(clean){
+            els.strokeStatus.textContent = `Clean run! ${reps}/${TARGET}. Tap Practice for another.`;
+          }else{
+            els.strokeStatus.textContent = `${slips} slip${slips === 1 ? "" : "s"} that time — this one does not count. Tap Practice to try for a clean run.`;
+          }
           SYNC.attempt({
             mode:"stroke", direction:"", wordId:CHAR_TO_WORD[c] || activeStrokeWord().id,
-            answer:`char ${c} · ${data.totalMistakes||0} mistakes`, correct:true
+            answer:`char ${c} · ${slips} slips · ${clean ? "clean" : "not clean"}`, correct:clean
           });
           saveState();
           updateProgress();
@@ -2339,11 +2445,23 @@
   }
 
   let resizeTimer = null;
-  window.addEventListener("resize",()=>{
+  function maybeResizeStrokeWriter(){
     if(currentMode !== "stroke") return;
+    if(stroke.quizRunning) return;               // never wipe a run in progress
+    const rect = els.strokeCanvasWrap.getBoundingClientRect();
+    const box = Math.floor(Math.min(rect.width || 0, rect.height || 0));
+    if(box && Math.abs(box - (stroke.lastSize || 0)) < 12) return;  // ignore URL-bar jitter
+    renderStrokeWriter();
+  }
+  function scheduleStrokeResize(){
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(renderStrokeWriter,180);
-  });
+    resizeTimer = setTimeout(maybeResizeStrokeWriter,200);
+  }
+  window.addEventListener("resize",scheduleStrokeResize);
+  window.addEventListener("orientationchange",()=>setTimeout(maybeResizeStrokeWriter,300));
+  if(window.visualViewport){
+    window.visualViewport.addEventListener("resize",scheduleStrokeResize);
+  }
 
   /* ---------------- Sidebar / topics ---------------- */
   const FALLBACK_TOPICS = (() => {
@@ -2545,6 +2663,7 @@
       if(signinOpen()){ hideSigninModal(); return; }
       if(sidebarIsOpen()){ closeSidebar(); return; }
       if(currentMode === "falling"){ els.fallCloseBtn.click(); return; }
+      if(currentMode === "stroke"){ els.strokeCloseBtn.click(); return; }
       return;
     }
     // 1–9 pick a quiz choice
@@ -2894,6 +3013,33 @@
   els.strokePracticeBtn.addEventListener("click",practiceStroke);
   els.strokeOutlineBtn.addEventListener("click",toggleStrokeOutline);
   els.strokeNextBtn.addEventListener("click",nextStrokeItem);
+  els.strokeCloseBtn.addEventListener("click",()=>setMode(previousMode && MODES[previousMode] && previousMode!=="falling" && previousMode!=="stroke" ? previousMode : DEFAULT_MODE));
+
+  /* "Request desktop site" makes a phone report a ~980px viewport and
+     ignore our meta tag, so the whole app looks like a shrunk desktop.
+     We cannot override it from script, but we can tell the student. */
+  const DESKTOP_WARN_KEY = "chineseLearning:v1:desktopWarnDismissed";
+  function looksLikeForcedDesktop(){
+    const coarse = (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) || (navigator.maxTouchPoints || 0) > 0;
+    const w = window.innerWidth || document.documentElement.clientWidth || 0;
+    const sw = (window.screen && window.screen.width) || w;
+    return coarse && w >= 900 && (w - sw) > 200;
+  }
+  function refreshDesktopSiteWarn(){
+    let dismissed = false;
+    try{ dismissed = localStorage.getItem(DESKTOP_WARN_KEY) === "1"; }catch(e){}
+    document.body.classList.toggle("is-desktop-site", !dismissed && looksLikeForcedDesktop());
+  }
+  const dsDismiss = $("#desktopSiteDismiss");
+  if(dsDismiss){
+    dsDismiss.addEventListener("click",()=>{
+      try{ localStorage.setItem(DESKTOP_WARN_KEY,"1"); }catch(e){}
+      document.body.classList.remove("is-desktop-site");
+    });
+  }
+  window.addEventListener("resize",refreshDesktopSiteWarn);
+  window.addEventListener("orientationchange",()=>setTimeout(refreshDesktopSiteWarn,300));
+  refreshDesktopSiteWarn();
   els.sidebarOpen.addEventListener("click",openSidebar);
   els.sidebarClose.addEventListener("click",closeSidebar);
   els.lockedBackBtn.addEventListener("click",()=>switchTopic(currentTopic in CURRICULUM ? currentTopic : "animals"));
