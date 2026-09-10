@@ -150,17 +150,35 @@ function syncChineseProgress(payload) {
 }
 
 /**
- * Teacher-only. Returns a detailed per-student breakdown for the Teacher
- * view: mastery, attempts needed, per-character difficulty, direction
- * strengths and weaknesses, falling and stroke stats, and time studied.
+ * Teacher-only. Returns a detailed per-student breakdown for one unit
+ * (mastery, attempts needed, per-character difficulty, direction strengths
+ * and weaknesses, falling and stroke stats, time studied). `request` is the
+ * topic id (string) or { topic }; it defaults to the first non-tutorial
+ * unit. The payload also carries the full `topics` list (with year group)
+ * so the client can build its unit picker.
  */
-function getChineseAdminData() {
+function getChineseAdminData(request) {
   var email = requireSchoolEmail_();
   if (!isTeacherEmail_(email)) {
     throw new Error('This account is not on the Chinese Learning teacher list.');
   }
   syncSeedTeachers_();
-  return buildAdminBreakdown_('animals');
+
+  var topic = '';
+  if (typeof request === 'string') topic = request;
+  else if (request && typeof request === 'object') topic = request.topic;
+  topic = cleanToken_(topic, 60);
+  if (!topic || !CL_TOPICS[topic]) topic = defaultAdminTopic_();
+
+  return buildAdminBreakdown_(topic);
+}
+
+function defaultAdminTopic_() {
+  var summary = CL_TOPIC_SUMMARY_();
+  for (var i = 0; i < summary.length; i++) {
+    if (summary[i].group !== 'Tutorial') return summary[i].id;
+  }
+  return summary.length ? summary[0].id : 'animals';
 }
 
 /* ------------------------------------------------------------------ *

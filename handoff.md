@@ -2,6 +2,18 @@
 
 Living project doc. Update after every session's changes.
 
+## 2026-09-10 — Teacher view is per-unit, grouped by year
+
+- `getChineseAdminData(request)` now takes a topic id (string) or
+  `{ topic }`; unknown/empty falls back to `defaultAdminTopic_()` (first
+  non-Tutorial unit). It still returns `topics` (with `group`).
+- The Teacher-view modal has a **Unit `<select>`** in its header, options
+  wrapped in `<optgroup>` per year (Tutorial / Year 10 / Year 11) via
+  `fillAdminTopicSelect`. Changing it reloads the breakdown for that unit
+  and the choice is remembered (`localStorage`
+  `chineseLearning:v1:adminTopic`). The scope line and empty-state now
+  read e.g. "Unit 2: Town & Neighbourhood · Year 10".
+
 ## 2026-09-10 — Year 10 units, sidebar year groups, non-blocking sidebar
 
 - **Year 10 Term 1A units added** (Cambridge IGCSE 0547), from the unit

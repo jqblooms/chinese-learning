@@ -426,8 +426,12 @@
   <!-- Teacher view -->
   <div id="adminModal" class="fixed inset-0 z-[70] hidden items-start justify-center bg-ink/50 p-2 sm:p-4">
     <div class="mx-auto flex max-h-[96vh] w-[min(1180px,98vw)] flex-col rounded-2xl border border-goldsoft bg-paper shadow-paper">
-      <div class="flex items-center gap-2 border-b border-goldsoft px-4 py-3">
+      <div class="flex flex-wrap items-center gap-2 border-b border-goldsoft px-4 py-3">
         <h2 class="text-lg font-black">Teacher view</h2>
+        <label class="flex items-center gap-1.5 text-xs font-bold text-smoke">
+          Unit
+          <select id="adminTopic" class="rounded-lg border border-goldsoft bg-[#fffaf0] px-2 py-1.5 text-xs font-bold text-ink"></select>
+        </label>
         <button id="adminRefresh" type="button" class="rounded-lg border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-xs font-bold">Refresh</button>
         <button id="adminClose" type="button" class="ml-auto rounded-lg border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-xs font-bold">Close</button>
       </div>
@@ -783,6 +787,7 @@
     sidebarOpen:$("#sidebarOpen"), sidebarClose:$("#sidebarClose"),
     openAdminBtn:$("#openAdminBtn"), adminModal:$("#adminModal"),
     adminBody:$("#adminBody"), adminClose:$("#adminClose"), adminRefresh:$("#adminRefresh"),
+    adminTopic:$("#adminTopic"),
     signinModal:$("#signinModal"), signinClose:$("#signinClose"),
     signinChoose:$("#signinChoose"), signinAuthRow:$("#signinAuthRow"),
     signinAuth1:$("#signinAuth1"), signinAuth2:$("#signinAuth2"),
@@ -2118,21 +2123,26 @@
   });
 
   /* ---------------- Teacher view ---------------- */
+  const ADMIN_TOPIC_KEY = "chineseLearning:v1:adminTopic";
+
   function openAdmin(){
     els.adminModal.classList.remove("hidden");
     els.adminModal.classList.add("flex");
-    loadAdmin();
+    let saved = "";
+    try{ saved = localStorage.getItem(ADMIN_TOPIC_KEY) || ""; }catch(e){}
+    loadAdmin(saved);
   }
   function closeAdmin(){
     els.adminModal.classList.add("hidden");
     els.adminModal.classList.remove("flex");
   }
-  function loadAdmin(){
+  function loadAdmin(topic){
     els.adminBody.textContent = "Loading…";
-    callServer("getChineseAdminData")
+    callServer("getChineseAdminData", topic || undefined)
       .then(data => renderAdmin(data))
       .catch(err => { els.adminBody.textContent = "Could not load: " + (err && err.message || err); });
   }
+
   const A_ESC = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const A_PCT = x => (x==null ? "—" : Math.round(x*100)+"%");
   function A_DUR(ms){
@@ -2158,12 +2168,32 @@
     return "text-red-700 font-black";
   }
 
+  function fillAdminTopicSelect(topics, current){
+    if(!Array.isArray(topics) || !topics.length){ els.adminTopic.innerHTML = ""; return; }
+    const byGroup = {};
+    const order = [];
+    topics.forEach(t => {
+      const g = t.group || "Other";
+      if(!byGroup[g]){ byGroup[g] = []; order.push(g); }
+      byGroup[g].push(t);
+    });
+    els.adminTopic.innerHTML = order.map(g =>
+      `<optgroup label="${A_ESC(g)}">` +
+      byGroup[g].map(t => `<option value="${A_ESC(t.id)}"${t.id===current?" selected":""}>${A_ESC(t.title)}</option>`).join("") +
+      `</optgroup>`
+    ).join("");
+    if(current) els.adminTopic.value = current;
+  }
+
   function renderAdmin(data){
     const students = Array.isArray(data.students) ? data.students : [];
     const target = data.target || TARGET;
     const dirCount = data.directionCount || 6;
+    fillAdminTopicSelect(data.topics, data.topic);
+    const curGroup = (data.topics || []).find(t => t.id === data.topic);
+    const scopeLabel = `${A_ESC(data.topicTitle || "")}${curGroup && curGroup.group ? " · " + A_ESC(curGroup.group) : ""}`;
     if(!students.length){
-      els.adminBody.innerHTML = `<p class="py-6 text-center text-smoke">No student activity recorded yet. Ask a student to sign in and answer a few questions, then refresh.</p>`;
+      els.adminBody.innerHTML = `<p class="py-6 text-center text-smoke">No student activity recorded yet for <strong>${scopeLabel}</strong>. Pick another unit above, or ask a student to sign in and answer a few questions, then refresh.</p>`;
       return;
     }
 
@@ -2305,7 +2335,7 @@
 
     els.adminBody.innerHTML = `
       <div class="mb-3 flex flex-wrap items-baseline gap-x-3 text-xs text-smoke">
-        <span><strong class="text-ink">${A_ESC(data.topicTitle||"Animals")}</strong> topic</span>
+        <span><strong class="text-ink">${scopeLabel}</strong></span>
         <span>${students.length} student${students.length===1?"":"s"}</span>
         <span>Generated ${A_DATE(data.generatedAt)}</span>
       </div>
@@ -2430,7 +2460,11 @@
   els.lockedBackBtn.addEventListener("click",()=>switchTopic(currentTopic in CURRICULUM ? currentTopic : "animals"));
   els.openAdminBtn.addEventListener("click",openAdmin);
   els.adminClose.addEventListener("click",closeAdmin);
-  els.adminRefresh.addEventListener("click",loadAdmin);
+  els.adminRefresh.addEventListener("click",()=>loadAdmin(els.adminTopic.value));
+  els.adminTopic.addEventListener("change",()=>{
+    try{ localStorage.setItem(ADMIN_TOPIC_KEY, els.adminTopic.value); }catch(e){}
+    loadAdmin(els.adminTopic.value);
+  });
   els.signinClose.addEventListener("click",hideSigninModal);
   els.signinModal.addEventListener("click",e=>{ if(e.target===els.signinModal) hideSigninModal(); });
 
