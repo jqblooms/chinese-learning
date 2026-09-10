@@ -2,6 +2,33 @@
 
 Living project doc. Update after every session's changes.
 
+## 2026-09-10 — full polish pass
+
+- **Question no longer "flickers" a second or two after opening a unit.**
+  `bootstrap` and `switchTopic` used to call `setMode(currentMode)` again
+  when the server progress arrived, which re-ran `chooseNext()` and
+  replaced the question. Now `adoptServerMastery` returns whether it
+  actually took the server copy (only when it is *strictly* newer, or the
+  device has no local progress), and `applyAdoptedState` refreshes the
+  side panel in place — it only picks a new question if the current
+  pair is already mastered or the mode genuinely changed.
+- **`setFeedback(text, tone)` / fixed `setFallMessage` classes.** The quiz
+  feedback line was `className +=`-ing tone classes, so repeated wrong
+  taps stacked `text-red-700 text-red-700 …`; now it is rebuilt each
+  time. `setFallMessage` was writing stale pre-fullscreen classes
+  (`mb-3 rounded-xl min-h-[44px]`); now it matches the element.
+- **UK sound guide** button is hidden, and the word-list "Sound guide"
+  column shows "—", for topics with no hand-authored `sound` field
+  (everything except Animals). The old fallback spoke tone-stripped
+  pinyin in an English voice, which was misleading. "🔊 Chinese" (real
+  zh-CN TTS) stays for every topic.
+- **Falling**: topics with ≤ 12 words (Animals) now use every word;
+  only the big units fall back to an 8-word sample (`FALL_ALL_MAX`).
+- **Keyboard**: number keys 1–9 pick a quiz choice; Esc closes the
+  teacher view / sign-in modal / sidebar, or exits Falling.
+- Grammar panel note trimmed to "Use these sentence frames when you speak
+  and write." `aria-pressed` on the Quiz/Learn toggle.
+
 ## 2026-09-10 — Teacher view is per-unit, grouped by year
 
 - `getChineseAdminData(request)` now takes a topic id (string) or

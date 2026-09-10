@@ -201,9 +201,9 @@
           <span id="saveDot" class="h-2 w-2 rounded-full bg-smoke"></span>
           <span id="saveText" class="hidden sm:inline">Saved on this device</span>
         </div>
-        <div id="modeToggle" class="order-last flex w-full overflow-hidden rounded-lg border border-goldsoft sm:order-none sm:w-auto">
-          <button id="quizModeBtn" type="button" class="lm-seg flex-1 px-4 py-2 text-sm font-black sm:flex-none">Quiz</button>
-          <button id="learnModeBtn" type="button" class="lm-seg flex-1 px-4 py-2 text-sm font-black sm:flex-none">Learn</button>
+        <div id="modeToggle" class="order-last flex w-full overflow-hidden rounded-lg border border-goldsoft sm:order-none sm:w-auto" role="group" aria-label="Quiz or Learn mode">
+          <button id="quizModeBtn" type="button" aria-pressed="true" class="lm-seg flex-1 px-4 py-2 text-sm font-black sm:flex-none">Quiz</button>
+          <button id="learnModeBtn" type="button" aria-pressed="false" class="lm-seg flex-1 px-4 py-2 text-sm font-black sm:flex-none">Learn</button>
         </div>
       </header>
 
@@ -382,7 +382,7 @@
 
         <details id="grammarPanel" class="paper-grain mt-4 hidden rounded-2xl border border-goldsoft bg-paper p-4 shadow-paper">
           <summary class="cursor-pointer font-black">Sentence patterns for this unit</summary>
-          <p class="mt-2 text-xs text-smoke">Reference only for now. Use these frames when you speak and write. Interactive practice for these is coming.</p>
+          <p class="mt-2 text-xs text-smoke">Use these sentence frames when you speak and write.</p>
           <ul id="grammarRows" class="mt-3 space-y-1.5"></ul>
         </details>
 
@@ -1065,6 +1065,12 @@
 
   let questionShownAt = 0;
 
+  function setFeedback(text, tone){
+    els.feedback.textContent = text;
+    els.feedback.className = "flex min-h-[52px] items-center justify-center px-2 pt-2 text-center font-black"
+      + (tone === "good" ? " text-green-700" : tone === "bad" ? " text-red-700" : "");
+  }
+
   function chooseNext(){
     if(currentMode === "falling" || currentMode === "stroke") return;
     const candidates = [];
@@ -1087,8 +1093,7 @@
     const d = DIRECTIONS[current.dir];
     const w = current.word;
     questionShownAt = Date.now();
-    els.feedback.textContent = "";
-    els.feedback.className = "flex min-h-[52px] items-center justify-center px-2 pt-2 text-center font-black";
+    setFeedback("");
     els.direction.textContent = d.label;
     els.prompt.textContent = getValue(w,d.from);
     els.prompt.className = d.from === "zh"
@@ -1103,6 +1108,7 @@
     }
     els.learnAnswer.hidden = !learnMode;
     els.learnAnswer.textContent = `Answer:  ${w.zh}  ·  ${w.py}  ·  ${w.en}`;
+    els.ukAudio.hidden = !w.sound;
     els.roundLabel.textContent = learnMode ? "Learn mode" : "Quiz mode";
     els.modeNote.textContent = learnMode ? "Answer shown. Practice taps do not count." : "3 correct answers per direction.";
     renderChoices();
@@ -1160,13 +1166,11 @@
 
     if(learnMode){
       if(correct){
-        els.feedback.textContent = `✓ ${w.zh}   ${w.py}   ${w.en}`;
-        els.feedback.className += " text-green-700";
+        setFeedback(`✓ ${w.zh}   ${w.py}   ${w.en}`, "good");
         locked = true;
         setTimeout(()=>{ locked=false; chooseNext(); },800);
       }else{
-        els.feedback.textContent = `Choose ${getValue(w,d.to)}.`;
-        els.feedback.className += " text-red-700";
+        setFeedback(`Choose ${getValue(w,d.to)}.`, "bad");
       }
       return;
     }
@@ -1185,16 +1189,14 @@
       locked = true;
       b.classList.add("correct");
       const n = state.scores[w.id][current.dir];
-      els.feedback.textContent = isDoneForMode(w) ? `✓ ${w.zh}   ${w.py}   ${w.en}` : `✓ ${n}/${TARGET}`;
-      els.feedback.className += " text-green-700";
+      setFeedback(isDoneForMode(w) ? `✓ ${w.zh}   ${w.py}   ${w.en}` : `✓ ${n}/${TARGET}`, "good");
       saveState();
       updateProgress();
       setTimeout(()=>chooseNext(),isDoneForMode(w) ? 950 : 700);
     }else{
       state.scores[w.id].wrong++;
       b.classList.add("wrong");
-      els.feedback.textContent = "Try again.";
-      els.feedback.className += " text-red-700";
+      setFeedback("Try again.", "bad");
       saveState();
       setTimeout(()=>b.classList.remove("wrong"),450);
     }
@@ -1361,6 +1363,8 @@
   function syncLearnUI(){
     els.quizModeBtn.classList.toggle("is-active", !learnMode);
     els.learnModeBtn.classList.toggle("is-active", learnMode);
+    els.quizModeBtn.setAttribute("aria-pressed", String(!learnMode));
+    els.learnModeBtn.setAttribute("aria-pressed", String(learnMode));
     els.learnBtn.textContent = `Learn mode: ${learnMode ? "On" : "Off"}`;
     els.learnBtn.classList.toggle("ring-2",learnMode);
     els.learnBtn.classList.toggle("ring-gold",learnMode);
@@ -1440,13 +1444,14 @@
   function fallPixelsPerSecond(){ return 42 * speedMultiplier(); }
   function pointsForCorrect(){ return 14 + fall.level*3; }
 
-  const FALL_POOL_SIZE = 8;
+  const FALL_POOL_SIZE = 8;   // sample size for big topics
+  const FALL_ALL_MAX = 12;    // topics with this many words or fewer use every word
 
-  // Words in play for the current run. For small topics this is every word;
-  // for large units it is a fixed sample so the meanings bank stays a
-  // readable, stable size. Re-picked only between runs and on level-up.
+  // Words in play for the current run. Small topics use every word; large
+  // units use a fixed sample so the meanings bank stays a readable, stable
+  // size. Re-picked only between runs and on level-up.
   function pickFallingPool(){
-    if(WORDS.length <= FALL_POOL_SIZE){ fall.pool = WORDS.slice(); return; }
+    if(WORDS.length <= FALL_ALL_MAX){ fall.pool = WORDS.slice(); return; }
     const shuffled = WORDS.slice();
     for(let i = shuffled.length - 1; i > 0; i--){
       const j = Math.floor(Math.random() * (i + 1));
@@ -1779,7 +1784,7 @@
     fall.level++;
     fall.penalty *= .45;
     state.falling.bestLevel = Math.max(state.falling.bestLevel,fall.level);
-    if(WORDS.length > FALL_POOL_SIZE){ pickFallingPool(); renderFallingAnswers(); }
+    if(WORDS.length > FALL_ALL_MAX){ pickFallingPool(); renderFallingAnswers(); }
     setFallMessage(`Level ${fall.level}`,"good");
     updateFallingHud();
     updateProgress();
@@ -1788,7 +1793,7 @@
 
   function setFallMessage(text,type){
     els.fallMessage.textContent = text;
-    els.fallMessage.className = "mb-3 min-h-[44px] rounded-xl border px-3 py-2 text-center text-sm leading-6";
+    els.fallMessage.className = "min-h-[36px] rounded-lg border px-3 py-1.5 text-center text-sm leading-5";
     if(type === "good") els.fallMessage.className += " border-green-300 bg-green-50 font-black text-green-700";
     else if(type === "bad") els.fallMessage.className += " border-red-300 bg-red-50 font-black text-red-700";
     else els.fallMessage.className += " border-goldsoft bg-[#fffaf0] text-smoke";
@@ -2039,7 +2044,7 @@
         <td class="han border-b border-goldsoft px-2 py-2 text-lg font-black">${w.zh}</td>
         <td class="border-b border-goldsoft px-2 py-2">${w.en}</td>
         <td class="border-b border-goldsoft px-2 py-2">${w.py}</td>
-        <td class="border-b border-goldsoft px-2 py-2">${w.sound ? "“"+w.sound+"” · "+w.note : "“"+stripTones(w.py)+"”"}</td>
+        <td class="border-b border-goldsoft px-2 py-2 text-smoke">${w.sound ? "“"+w.sound+"” · "+w.note : "—"}</td>
       </tr>`).join("");
   }
 
@@ -2095,8 +2100,33 @@
 
     if(HAS_BACKEND){
       callServer("getMyChineseProgress")
-        .then(r => { adoptServerMastery(r && r.mastery); refreshTopicChrome(); setMode(currentMode); })
+        .then(r => {
+          const adopted = adoptServerMastery(r && r.mastery);
+          refreshTopicChrome();
+          applyAdoptedState(adopted);
+        })
         .catch(()=>{});
+    }
+  }
+
+  // After late-arriving server progress: only disturb the running quiz if
+  // the saved state was actually newer. Otherwise leave the current
+  // question in place — re-rendering it here is what made the question
+  // "flicker and change" a second or two after opening a unit.
+  function applyAdoptedState(adopted){
+    if(!adopted) return;
+    const wantMode = state.lastMode;
+    if(MODES[wantMode] && wantMode !== currentMode){
+      setMode(wantMode);
+      return;
+    }
+    syncLearnUI();
+    if(currentMode === "falling"){ updateFallingHud(); updateProgress(); return; }
+    if(currentMode === "stroke"){ renderStrokeHeader(); updateProgress(); return; }
+    if(current && state.scores[current.word.id] && state.scores[current.word.id][current.dir] < TARGET){
+      updateProgress();          // keep the same question, just refresh the side panel
+    }else{
+      chooseNext();              // the current pair is already mastered — move on
     }
   }
 
@@ -2120,6 +2150,31 @@
     if(!sidebarIsOpen()) return;
     if(els.sidebar.contains(e.target) || els.sidebarOpen.contains(e.target)) return;
     closeSidebar();
+  });
+
+  /* ---------------- Keyboard shortcuts ---------------- */
+  const adminOpen = () => !els.adminModal.classList.contains("hidden");
+  const signinOpen = () => !els.signinModal.classList.contains("hidden");
+
+  document.addEventListener("keydown", e => {
+    if(e.key === "Escape"){
+      if(adminOpen()){ closeAdmin(); return; }
+      if(signinOpen()){ hideSigninModal(); return; }
+      if(sidebarIsOpen()){ closeSidebar(); return; }
+      if(currentMode === "falling"){ els.fallCloseBtn.click(); return; }
+      return;
+    }
+    // 1–9 pick a quiz choice
+    if(/^[1-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey){
+      const tag = (document.activeElement && document.activeElement.tagName) || "";
+      if(tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+      if(adminOpen() || signinOpen()) return;
+      if(currentMode === "falling" || currentMode === "stroke") return;
+      if(els.standardArea.classList.contains("hidden")) return;
+      if(locked || !current) return;
+      const btn = els.choices.children[Number(e.key) - 1];
+      if(btn){ e.preventDefault(); btn.click(); }
+    }
   });
 
   /* ---------------- Teacher view ---------------- */
@@ -2393,15 +2448,16 @@
 
   function adoptServerMastery(mastery){
     const entry = mastery && mastery[currentTopic];
-    if(!entry || !entry.data) return;
+    if(!entry || !entry.data) return false;
     const serverState = coerceState(entry.data);
     const localEmpty = state.attempts === 0 && state.correct === 0;
-    const serverNewer = (Number(serverState.updatedAt)||0) >= (Number(state.updatedAt)||0);
+    const serverNewer = (Number(serverState.updatedAt)||0) > (Number(state.updatedAt)||0);
     if(localEmpty || serverNewer){
       state = serverState;
-      currentMode = state.lastMode;
       try{ localStorage.setItem(STORE_KEY,JSON.stringify(state)); }catch{}
+      return true;
     }
+    return false;
   }
 
   function bootstrap(){
@@ -2417,14 +2473,14 @@
       .then(data => {
         if(data.topics && data.topics.length) renderTopics(data.topics);
         applyIdentity(data);
-        adoptServerMastery(data.mastery);
+        const adopted = adoptServerMastery(data.mastery);
         if(data && data.currentUser){
           state.sessionCount = (state.sessionCount || 0) + 1;
           persistLocal();
           SYNC.mastery();
         }
         refreshTopicChrome();
-        setMode(currentMode);
+        applyAdoptedState(adopted);
       })
       .catch(() => {
         applyIdentity(null);
