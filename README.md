@@ -8,9 +8,10 @@ Animals**, is the first one built.
 
 | File | Role |
 | --- | --- |
-| `Code.gs` | Web app entry (`doGet`), identity, and the callable endpoints (`getPageData`, `getBootstrapData`, `getMyChineseProgress`, `syncChineseProgress`, `getChineseAdminData`). |
+| `Code.gs` | Web app entry (`doGet`), identity, seed-teacher list, and the callable endpoints (`getPageData`, `getBootstrapData`, `getMyChineseProgress`, `syncChineseProgress`, `getChineseAdminData`). |
 | `Curriculum.gs` | Server-side topic and word data. Source of truth for answer validation. Keep `CL_TOPICS.animals.words` in step with the `WORDS` array in `Index.html`. |
 | `Storage.gs` | Auto-provisioned data spreadsheet, teacher list, and read/write helpers for the `Attempts` and `Mastery` sheets. |
+| `Analytics.gs` | `buildAdminBreakdown_` — the detailed per-student breakdown behind the Teacher view. |
 | `Index.html` | The whole client: app shell, sidebar, and the Animals lesson (six practice modes ported from the standalone prototype) plus the sync layer. |
 | `appsscript.json` | Manifest. Web app runs **as the deploying user**, open to **anyone** so students without a Google session can still practise. |
 
@@ -23,7 +24,13 @@ Script Properties (`CL_DATA_SPREADSHEET_ID`). Sheets:
 - **Mastery** one row per `(student, topic)`: the client's progress
   aggregate stored as JSON, used to restore progress on any device.
 - **Teachers** one email per row. These accounts see the **Teacher view**.
-  The deploying account is seeded automatically so admin is never locked out.
+  The deploying account and everything in `CL_SEED_TEACHERS` (`Code.gs`)
+  are seeded automatically so admin is never locked out.
+
+The **Teacher view** gives a per-student breakdown: accuracy, words
+mastered, average attempts needed to master each character, per-character
+and per-direction difficulty, strengths and weaknesses, falling-game and
+stroke-practice stats, and time studied.
 
 ## Validation
 

@@ -37,14 +37,19 @@ function getDataSpreadsheet_() {
     initSheet_(ss, CL_SHEETS.MASTERY, CL_MASTERY_HEADERS);
     initSheet_(ss, CL_SHEETS.TEACHERS, CL_TEACHER_HEADERS);
 
-    var seededTeacher = '';
+    var seeds = [];
     try {
-      seededTeacher = String(Session.getEffectiveUser().getEmail() || '').trim().toLowerCase();
-    } catch (err) {
-      seededTeacher = '';
-    }
-    if (seededTeacher) {
-      ss.getSheetByName(CL_SHEETS.TEACHERS).getRange(2, 1).setValue(seededTeacher);
+      var deployer = String(Session.getEffectiveUser().getEmail() || '').trim().toLowerCase();
+      if (deployer) seeds.push(deployer);
+    } catch (err) { /* no effective-user email available */ }
+    CL_SEED_TEACHERS.forEach(function (e) {
+      var v = String(e || '').trim().toLowerCase();
+      if (v && seeds.indexOf(v) === -1) seeds.push(v);
+    });
+    if (seeds.length) {
+      ss.getSheetByName(CL_SHEETS.TEACHERS)
+        .getRange(2, 1, seeds.length, 1)
+        .setValues(seeds.map(function (e) { return [e]; }));
     }
 
     var defaultSheet = ss.getSheetByName('Sheet1');
@@ -81,6 +86,9 @@ function getSheet_(name, headers) {
 function isTeacherEmail_(email) {
   if (!email) return false;
   var target = String(email).trim().toLowerCase();
+  for (var s = 0; s < CL_SEED_TEACHERS.length; s++) {
+    if (String(CL_SEED_TEACHERS[s] || '').trim().toLowerCase() === target) return true;
+  }
   var sheet = getSheet_(CL_SHEETS.TEACHERS, CL_TEACHER_HEADERS);
   var lastRow = sheet.getLastRow();
   if (lastRow < 2) return false;
@@ -89,6 +97,26 @@ function isTeacherEmail_(email) {
     if (String(values[i][0] || '').trim().toLowerCase() === target) return true;
   }
   return false;
+}
+
+/** Appends any CL_SEED_TEACHERS not already present in the Teachers sheet. */
+function syncSeedTeachers_() {
+  var sheet = getSheet_(CL_SHEETS.TEACHERS, CL_TEACHER_HEADERS);
+  var lastRow = sheet.getLastRow();
+  var have = {};
+  if (lastRow >= 2) {
+    sheet.getRange(2, 1, lastRow - 1, 1).getValues().forEach(function (row) {
+      have[String(row[0] || '').trim().toLowerCase()] = true;
+    });
+  }
+  var missing = [];
+  CL_SEED_TEACHERS.forEach(function (e) {
+    var v = String(e || '').trim().toLowerCase();
+    if (v && !have[v]) missing.push([v]);
+  });
+  if (missing.length) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, missing.length, 1).setValues(missing);
+  }
 }
 
 /* ------------------------------------------------------------------ *
@@ -131,6 +159,33 @@ function readRecentAttempts_(limit) {
       elapsedMs: Number(row[11]) || 0
     };
   }).reverse();
+}
+
+/** Every attempt row for one topic, oldest first. Used by the Teacher view. */
+function readAllAttempts_(topic) {
+  var sheet = getSheet_(CL_SHEETS.ATTEMPTS, CL_ATTEMPT_HEADERS);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+  var values = sheet.getRange(2, 1, lastRow - 1, CL_ATTEMPT_HEADERS.length).getValues();
+  var out = [];
+  for (var i = 0; i < values.length; i++) {
+    var row = values[i];
+    if (topic && String(row[2] || '') !== topic) continue;
+    out.push({
+      ts: row[0] ? new Date(row[0]).getTime() : 0,
+      email: String(row[1] || '').trim().toLowerCase(),
+      topic: String(row[2] || ''),
+      mode: String(row[3] || ''),
+      direction: String(row[4] || ''),
+      wordId: String(row[5] || ''),
+      answer: String(row[7] || ''),
+      expected: String(row[8] || ''),
+      correct: row[9] === true,
+      source: String(row[10] || ''),
+      elapsedMs: Number(row[11]) || 0
+    });
+  }
+  return out;
 }
 
 /* ------------------------------------------------------------------ *

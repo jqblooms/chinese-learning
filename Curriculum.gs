@@ -8,14 +8,22 @@
  * Future lessons are added as new entries with `status: 'available'`.
  */
 
+// Number of correct answers per direction that counts a word as mastered.
+// Must match TARGET in Index.html.
+var CL_TARGET = 3;
+
 var CL_DIRECTIONS = Object.freeze({
-  zh_py: { from: 'zh', to: 'py' },
-  py_zh: { from: 'py', to: 'zh' },
-  zh_en: { from: 'zh', to: 'en' },
-  en_zh: { from: 'en', to: 'zh' },
-  py_en: { from: 'py', to: 'en' },
-  en_py: { from: 'en', to: 'py' }
+  zh_py: { from: 'zh', to: 'py', label: 'Character to pinyin' },
+  py_zh: { from: 'py', to: 'zh', label: 'Pinyin to character' },
+  zh_en: { from: 'zh', to: 'en', label: 'Character to meaning' },
+  en_zh: { from: 'en', to: 'zh', label: 'Meaning to character' },
+  py_en: { from: 'py', to: 'en', label: 'Pinyin to meaning' },
+  en_py: { from: 'en', to: 'py', label: 'Meaning to pinyin' }
 });
+
+function CL_DIRECTION_LABEL_(key) {
+  return (CL_DIRECTIONS[key] && CL_DIRECTIONS[key].label) || key || '';
+}
 
 var CL_GRADABLE_MODES = Object.freeze({ standard: true, falling: true });
 

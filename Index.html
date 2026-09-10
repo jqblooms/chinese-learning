@@ -103,6 +103,29 @@
     .topic-btn[aria-current="true"] { background:#9b2c20; color:#fff; border-color:#9b2c20; box-shadow:0 6px 18px rgba(127,29,29,.18); }
     .topic-btn[aria-current="true"] .topic-sub { color:#fee2e2; }
     #sidebarScrim { transition: opacity .2s ease; }
+
+    /* Falling characters takes over the viewport and sizes its field to fit */
+    #fallingArea.falling-fullscreen {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      padding: .6rem clamp(.6rem, 3vw, 1.5rem) .6rem;
+      background: linear-gradient(180deg, #f8f1df 0%, #f1e1c2 100%);
+      overflow: hidden;
+      overscroll-behavior: contain;
+    }
+    #fallingArea.falling-fullscreen .fall-field {
+      flex: 1 1 auto;
+      min-height: 0;
+      height: auto !important;
+      border-radius: 16px 16px 0 0;
+    }
+    #fallingArea.falling-fullscreen .falling-meanings { flex: 0 0 auto; }
+    body.falling-lock { overflow: hidden; }
+
     @media (prefers-reduced-motion: reduce) { * { scroll-behavior:auto !important; transition:none !important; } }
   </style>
 </head>
@@ -233,24 +256,33 @@
             </section>
 
             <section id="fallingArea" class="hidden">
-              <div class="mb-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
-                <div class="rounded-xl border border-goldsoft bg-[#fffaf0] p-2 text-center"><span class="block text-[11px] font-black uppercase tracking-wide text-smoke">Level</span><strong id="fallLevel" class="text-lg">1</strong></div>
-                <div class="rounded-xl border border-goldsoft bg-[#fffaf0] p-2 text-center"><span class="block text-[11px] font-black uppercase tracking-wide text-smoke">Points</span><strong id="fallPoints" class="text-lg">0</strong></div>
-                <div class="rounded-xl border border-goldsoft bg-[#fffaf0] p-2 text-center"><span class="block text-[11px] font-black uppercase tracking-wide text-smoke">High score</span><strong id="fallHighScore" class="text-lg">0</strong></div>
-                <div class="rounded-xl border border-goldsoft bg-[#fffaf0] p-2 text-center"><span class="block text-[11px] font-black uppercase tracking-wide text-smoke">Matches</span><strong id="fallCorrect" class="text-lg">0</strong></div>
-                <div class="rounded-xl border border-goldsoft bg-[#fffaf0] p-2 text-center"><span class="block text-[11px] font-black uppercase tracking-wide text-smoke">Errors</span><strong id="fallErrors" class="text-lg">0</strong></div>
-                <div class="rounded-xl border border-goldsoft bg-[#fffaf0] p-2 text-center"><span class="block text-[11px] font-black uppercase tracking-wide text-smoke">Speed</span><strong id="fallSpeed" class="text-lg">1.00×</strong></div>
+              <div class="flex items-center gap-2">
+                <strong class="font-black">Falling characters</strong>
+                <span class="hidden text-xs text-smoke sm:inline">汉字 → English meaning</span>
+                <button id="fallCloseBtn" type="button" class="ml-auto rounded-lg border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-sm font-bold">Exit</button>
               </div>
-              <div class="mb-2 flex flex-wrap gap-2">
-                <button id="fallStartBtn" type="button" class="rounded-xl bg-cinnabar px-4 py-2.5 font-black text-white shadow-seal">Start</button>
-                <button id="fallPauseBtn" type="button" class="rounded-xl border border-goldsoft bg-[#fffaf0] px-4 py-2.5 font-black disabled:cursor-not-allowed disabled:opacity-40" disabled>Pause</button>
-                <button id="fallNewBtn" type="button" class="rounded-xl border border-goldsoft bg-[#fffaf0] px-4 py-2.5 font-black">New run</button>
-                <button id="fallNextBtn" type="button" class="rounded-xl border border-jade bg-jade px-4 py-2.5 font-black text-white disabled:cursor-not-allowed disabled:opacity-40" disabled>Next level</button>
+
+              <div class="grid grid-cols-3 gap-1.5 text-center sm:grid-cols-6">
+                <div class="rounded-lg border border-goldsoft bg-[#fffaf0] px-1 py-1"><span class="block text-[10px] font-black uppercase tracking-wide text-smoke">Level</span><strong id="fallLevel" class="text-base">1</strong></div>
+                <div class="rounded-lg border border-goldsoft bg-[#fffaf0] px-1 py-1"><span class="block text-[10px] font-black uppercase tracking-wide text-smoke">Points</span><strong id="fallPoints" class="text-base">0</strong></div>
+                <div class="rounded-lg border border-goldsoft bg-[#fffaf0] px-1 py-1"><span class="block text-[10px] font-black uppercase tracking-wide text-smoke">High score</span><strong id="fallHighScore" class="text-base">0</strong></div>
+                <div class="rounded-lg border border-goldsoft bg-[#fffaf0] px-1 py-1"><span class="block text-[10px] font-black uppercase tracking-wide text-smoke">Matches</span><strong id="fallCorrect" class="text-base">0</strong></div>
+                <div class="rounded-lg border border-goldsoft bg-[#fffaf0] px-1 py-1"><span class="block text-[10px] font-black uppercase tracking-wide text-smoke">Errors</span><strong id="fallErrors" class="text-base">0</strong></div>
+                <div class="rounded-lg border border-goldsoft bg-[#fffaf0] px-1 py-1"><span class="block text-[10px] font-black uppercase tracking-wide text-smoke">Speed</span><strong id="fallSpeed" class="text-base">1.00×</strong></div>
               </div>
-              <div id="fallLevelProgressText" class="mb-1 text-sm font-bold text-smoke">Level 2 unlocks at 90 points.</div>
-              <div class="mb-3 h-2 overflow-hidden rounded-full border border-goldsoft bg-[#ead9b7]"><div id="fallLevelProgress" class="h-full bg-jade transition-[width] duration-300" style="width:0%"></div></div>
-              <div id="fallMessage" class="mb-3 min-h-[44px] rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-2 text-center text-sm leading-6 text-smoke" aria-live="polite">Tap Start. Select a character, then its meaning. Dragging works on touch screens.</div>
-              <div id="fallField" class="fall-field h-[360px] rounded-t-2xl border border-goldsoft sm:h-[500px]" aria-label="Falling Chinese characters">
+
+              <div class="flex flex-wrap items-center gap-1.5">
+                <button id="fallStartBtn" type="button" class="rounded-lg bg-cinnabar px-3 py-1.5 text-sm font-black text-white shadow-seal">Start</button>
+                <button id="fallPauseBtn" type="button" class="rounded-lg border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-sm font-black disabled:cursor-not-allowed disabled:opacity-40" disabled>Pause</button>
+                <button id="fallNewBtn" type="button" class="rounded-lg border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-sm font-black">New run</button>
+                <button id="fallNextBtn" type="button" class="rounded-lg border border-jade bg-jade px-3 py-1.5 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-40" disabled>Next level</button>
+                <span id="fallLevelProgressText" class="text-xs font-bold text-smoke">Level 2 unlocks at 90 points.</span>
+                <div class="h-1.5 min-w-[80px] flex-1 overflow-hidden rounded-full border border-goldsoft bg-[#ead9b7]"><div id="fallLevelProgress" class="h-full bg-jade transition-[width] duration-300" style="width:0%"></div></div>
+              </div>
+
+              <div id="fallMessage" class="min-h-[36px] rounded-lg border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-center text-sm leading-5 text-smoke" aria-live="polite">Tap Start. Select a character, then its meaning. Dragging works on touch screens.</div>
+
+              <div id="fallField" class="fall-field h-[300px] rounded-t-2xl border border-goldsoft" aria-label="Falling Chinese characters">
                 <div id="fallStartOverlay" class="absolute inset-0 z-10 flex items-center justify-center bg-[#fffaf0]/80 text-center backdrop-blur-[1px]">
                   <div>
                     <svg class="mx-auto mb-3 h-16 w-28 text-cinnabar" viewBox="0 0 140 80" fill="none" aria-hidden="true"><path d="M11 54c9-15 25-17 36-5 5-19 34-25 46-7 15-16 38-9 39 10 11-2 19 3 22 12H16c-10 0-12-6-5-10Z" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg>
@@ -259,9 +291,9 @@
                   </div>
                 </div>
               </div>
-              <div class="rounded-b-2xl border border-t-0 border-goldsoft bg-[#efe0c2] p-2">
-                <div class="mb-2 text-center text-[11px] font-black uppercase tracking-[0.08em] text-smoke">Meanings</div>
-                <div id="fallAnswers" class="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9"></div>
+
+              <div class="falling-meanings rounded-b-2xl border border-t-0 border-goldsoft bg-[#efe0c2] p-1.5">
+                <div id="fallAnswers" class="grid grid-cols-3 gap-1.5 sm:grid-cols-5 lg:grid-cols-9"></div>
               </div>
             </section>
 
@@ -342,14 +374,14 @@
   </div>
 
   <!-- Teacher view -->
-  <div id="adminModal" class="fixed inset-0 z-50 hidden items-start justify-center overflow-y-auto bg-ink/50 p-4">
-    <div class="mx-auto mt-10 w-[min(960px,96vw)] rounded-2xl border border-goldsoft bg-paper p-5 shadow-paper">
-      <div class="mb-3 flex items-center gap-2">
+  <div id="adminModal" class="fixed inset-0 z-[70] hidden items-start justify-center bg-ink/50 p-2 sm:p-4">
+    <div class="mx-auto flex max-h-[96vh] w-[min(1180px,98vw)] flex-col rounded-2xl border border-goldsoft bg-paper shadow-paper">
+      <div class="flex items-center gap-2 border-b border-goldsoft px-4 py-3">
         <h2 class="text-lg font-black">Teacher view</h2>
         <button id="adminRefresh" type="button" class="rounded-lg border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-xs font-bold">Refresh</button>
         <button id="adminClose" type="button" class="ml-auto rounded-lg border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-xs font-bold">Close</button>
       </div>
-      <div id="adminBody" class="overflow-x-auto text-sm text-smoke">Loading…</div>
+      <div id="adminBody" class="flex-1 overflow-y-auto px-4 py-3 text-sm text-smoke">Loading…</div>
     </div>
   </div>
 
@@ -434,7 +466,7 @@
     fallLevel:$("#fallLevel"), fallPoints:$("#fallPoints"), fallHighScore:$("#fallHighScore"),
     fallCorrect:$("#fallCorrect"), fallErrors:$("#fallErrors"), fallSpeed:$("#fallSpeed"),
     fallStartBtn:$("#fallStartBtn"), fallPauseBtn:$("#fallPauseBtn"),
-    fallNewBtn:$("#fallNewBtn"), fallNextBtn:$("#fallNextBtn"),
+    fallNewBtn:$("#fallNewBtn"), fallNextBtn:$("#fallNextBtn"), fallCloseBtn:$("#fallCloseBtn"),
     fallLevelProgressText:$("#fallLevelProgressText"), fallLevelProgress:$("#fallLevelProgress"),
     fallMessage:$("#fallMessage"), fallField:$("#fallField"),
     fallStartOverlay:$("#fallStartOverlay"), fallAnswers:$("#fallAnswers"),
@@ -476,7 +508,8 @@
   function blankState(){
     return {
       scores:blankScores(), attempts:0, correct:0, lastMode:"mixed",
-      falling:blankFallingStats(), stroke:blankStrokeStats(), updatedAt:0
+      falling:blankFallingStats(), stroke:blankStrokeStats(),
+      timeStudiedMs:0, sessionCount:0, updatedAt:0
     };
   }
 
@@ -507,6 +540,8 @@
         base.stroke.mistakes[c] = Math.max(0,Number(raw.stroke.mistakes?.[c])||0);
       }
     }
+    base.timeStudiedMs = Math.max(0,Number(raw.timeStudiedMs)||0);
+    base.sessionCount = Math.max(0,Number(raw.sessionCount)||0);
     base.updatedAt = Number(raw.updatedAt)||0;
     return base;
   }
@@ -521,17 +556,51 @@
 
   let state = loadState();
   let currentMode = state.lastMode;
+  let previousMode = (currentMode === "falling" || currentMode === "stroke") ? "mixed" : currentMode;
   let learnMode = false;
   let current = null;
   let locked = false;
   let recentPairs = [];
 
-  function saveState(){
+  function persistLocal(){
     state.lastMode = currentMode;
     state.updatedAt = Date.now();
     try{ localStorage.setItem(STORE_KEY,JSON.stringify(state)); }catch{}
+  }
+
+  function saveState(){
+    persistLocal();
     SYNC.mastery();
   }
+
+  /* ---------------- Study-time tracking ---------------- */
+  let lastInteraction = Date.now();
+  ["pointerdown","keydown","wheel","touchstart"].forEach(ev =>
+    window.addEventListener(ev, () => { lastInteraction = Date.now(); }, {passive:true}));
+
+  let studyTickAccrued = 0;
+  const STUDY_TICK_MS = 5000;
+  const STUDY_IDLE_MS = 90000;
+
+  setInterval(() => {
+    if(document.visibilityState !== "visible") return;
+    if(els.lessonRoot.classList.contains("hidden")) return;
+    if(Date.now() - lastInteraction > STUDY_IDLE_MS) return;
+    state.timeStudiedMs = (state.timeStudiedMs || 0) + STUDY_TICK_MS;
+    studyTickAccrued += STUDY_TICK_MS;
+    if(studyTickAccrued >= 20000){
+      studyTickAccrued = 0;
+      persistLocal();
+      SYNC.mastery();
+    }
+  }, STUDY_TICK_MS);
+
+  document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "hidden"){
+      persistLocal();
+      SYNC.flush();
+    }
+  });
 
   /* ---------------- Sync layer ---------------- */
   const SYNC = (() => {
@@ -772,6 +841,7 @@
 
   function setMode(mode){
     if(!MODES[mode]) return;
+    if(currentMode !== "falling" && currentMode !== "stroke") previousMode = currentMode;
     if(currentMode === "falling") stopFalling(false);
     if(currentMode === "stroke") cancelStrokeQuiz();
     currentMode = mode;
@@ -793,7 +863,9 @@
     els.completeArea.classList.add("hidden");
     els.standardArea.classList.add("hidden");
     els.fallingArea.classList.add("hidden");
+    els.fallingArea.classList.remove("falling-fullscreen");
     els.strokeArea.classList.add("hidden");
+    document.body.classList.remove("falling-lock");
 
     const special = mode === "falling" || mode === "stroke";
     els.learnBtn.disabled = special;
@@ -805,6 +877,8 @@
 
     if(mode === "falling"){
       els.fallingArea.classList.remove("hidden");
+      els.fallingArea.classList.add("falling-fullscreen");
+      document.body.classList.add("falling-lock");
       renderFallingAnswers();
       resetFallingRun(false);
       updateFallingHud();
@@ -1500,40 +1574,183 @@
       .then(data => renderAdmin(data))
       .catch(err => { els.adminBody.textContent = "Could not load: " + (err && err.message || err); });
   }
+  const A_ESC = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const A_PCT = x => (x==null ? "—" : Math.round(x*100)+"%");
+  function A_DUR(ms){
+    ms = Math.max(0,Number(ms)||0);
+    const s = Math.round(ms/1000);
+    if(s < 60) return s + "s";
+    const m = Math.round(s/60);
+    if(m < 60) return m + " min";
+    const h = Math.floor(m/60);
+    return h + "h " + (m%60) + "m";
+  }
+  function A_DATE(iso){
+    if(!iso) return "—";
+    const d = new Date(iso);
+    if(isNaN(d)) return "—";
+    return d.toLocaleDateString(undefined,{day:"numeric",month:"short"}) + " " +
+           d.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"});
+  }
+  function A_ACC_CLASS(x){
+    if(x==null) return "text-smoke";
+    if(x >= 0.85) return "text-green-700 font-black";
+    if(x >= 0.6) return "text-[#7b5718] font-bold";
+    return "text-red-700 font-black";
+  }
+
   function renderAdmin(data){
-    const students = data.students || {};
-    const emails = Object.keys(students).sort();
-    if(!emails.length){ els.adminBody.textContent = "No student progress recorded yet."; return; }
-    const rows = emails.map(email => {
-      const a = (students[email] && students[email].animals && students[email].animals.data) || {};
-      const scores = a.scores || {};
-      let mastered = 0;
-      WORDS.forEach(w => {
-        const s = scores[w.id] || {};
-        if(Object.keys(DIRECTIONS).every(d => (s[d]||0) >= TARGET)) mastered++;
-      });
-      const fallCorrect = a.falling ? Object.values(a.falling.totalCorrect||{}).reduce((x,y)=>x+y,0) : 0;
-      const strokeDone = a.stroke ? ALL_STROKE_CHARS.filter(c => (a.stroke.reps?.[c]||0) >= TARGET).length : 0;
-      return `<tr class="border-b border-goldsoft">
-        <td class="px-2 py-1.5 font-bold text-ink">${email}</td>
-        <td class="px-2 py-1.5 text-center">${mastered}/9</td>
-        <td class="px-2 py-1.5 text-center">${a.correct||0}/${a.attempts||0}</td>
-        <td class="px-2 py-1.5 text-center">${fallCorrect}</td>
-        <td class="px-2 py-1.5 text-center">${strokeDone}/${ALL_STROKE_CHARS.length}</td>
-      </tr>`;
+    const students = Array.isArray(data.students) ? data.students : [];
+    const target = data.target || TARGET;
+    const dirCount = data.directionCount || 6;
+    if(!students.length){
+      els.adminBody.innerHTML = `<p class="py-6 text-center text-smoke">No student activity recorded yet. Ask a student to sign in and answer a few questions, then refresh.</p>`;
+      return;
+    }
+
+    const cards = students.map((st, idx) => {
+      const chips = (list, tone) => (list && list.length)
+        ? list.map(w => `<span class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs ${tone}">
+             <span class="han font-black">${A_ESC(w.zh)}</span><span>${A_ESC(w.en)}</span>
+             <span class="opacity-70">${A_PCT(w.accuracy)} · ${w.attempts} tries</span></span>`).join(" ")
+        : `<span class="text-xs text-smoke">Not enough attempts yet.</span>`;
+
+      const wordRows = (st.words||[]).map(w => `
+        <tr class="border-b border-goldsoft/60">
+          <td class="px-2 py-1.5"><span class="han text-base font-black">${A_ESC(w.zh)}</span>
+            <span class="ml-1 text-xs text-smoke">${A_ESC(w.en)} · ${A_ESC(w.py)}</span></td>
+          <td class="px-2 py-1.5 text-center">${w.attempts}</td>
+          <td class="px-2 py-1.5 text-center ${w.wrong ? "text-red-700 font-bold" : "text-smoke"}">${w.wrong}</td>
+          <td class="px-2 py-1.5 text-center ${A_ACC_CLASS(w.accuracy)}">${A_PCT(w.accuracy)}</td>
+          <td class="px-2 py-1.5 text-center">${w.avgMs ? (w.avgMs/1000).toFixed(1)+"s" : "—"}</td>
+          <td class="px-2 py-1.5 text-center">${w.avgAttemptsToMaster==null ? "—" : w.avgAttemptsToMaster}</td>
+          <td class="px-2 py-1.5 text-center ${w.masteredDirections>=w.totalDirections ? "text-green-700 font-black" : ""}">${w.masteredDirections}/${w.totalDirections}</td>
+        </tr>`).join("");
+
+      const dirRows = (st.directions||[]).map(d => `
+        <tr class="border-b border-goldsoft/60">
+          <td class="px-2 py-1.5">${A_ESC(d.label)}</td>
+          <td class="px-2 py-1.5 text-center">${d.attempts}</td>
+          <td class="px-2 py-1.5 text-center ${d.wrong ? "text-red-700 font-bold" : "text-smoke"}">${d.wrong}</td>
+          <td class="px-2 py-1.5 text-center ${A_ACC_CLASS(d.accuracy)}">${A_PCT(d.accuracy)}</td>
+        </tr>`).join("");
+
+      const fallingRows = (st.falling||[]).map(f => `
+        <tr class="border-b border-goldsoft/60">
+          <td class="px-2 py-1.5"><span class="han font-black">${A_ESC(f.zh)}</span> <span class="text-xs text-smoke">${A_ESC(f.en)}</span></td>
+          <td class="px-2 py-1.5 text-center text-green-700 font-bold">${f.matches}</td>
+          <td class="px-2 py-1.5 text-center ${f.errors ? "text-red-700 font-bold" : "text-smoke"}">${f.errors}</td>
+        </tr>`).join("");
+
+      const strokeRows = (st.stroke||[]).length
+        ? st.stroke.map(sk => `
+          <tr class="border-b border-goldsoft/60">
+            <td class="px-2 py-1.5 han font-black">${A_ESC(sk.char)}</td>
+            <td class="px-2 py-1.5 text-center ${sk.reps>=target ? "text-green-700 font-black" : ""}">${sk.reps}/${target}</td>
+            <td class="px-2 py-1.5 text-center ${sk.mistakes ? "text-red-700 font-bold" : "text-smoke"}">${sk.mistakes}</td>
+          </tr>`).join("")
+        : `<tr><td colspan="3" class="px-2 py-2 text-center text-xs text-smoke">No stroke practice yet.</td></tr>`;
+
+      const stat = (label, value) => `
+        <div class="rounded-lg border border-goldsoft bg-[#fffaf0] px-2.5 py-1.5">
+          <div class="text-[10px] font-black uppercase tracking-wide text-smoke">${label}</div>
+          <div class="text-sm font-black text-ink">${value}</div>
+        </div>`;
+
+      return `
+      <details class="rounded-xl border border-goldsoft bg-paper" ${idx===0 ? "open" : ""}>
+        <summary class="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2.5">
+          <span class="font-black text-ink">${A_ESC(st.shortName)}</span>
+          <span class="text-xs text-smoke">${A_ESC(st.email)}</span>
+          <span class="ml-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+            <span>Mastered <strong>${st.masteredWords}/${st.wordCount}</strong></span>
+            <span>Accuracy <strong class="${A_ACC_CLASS(st.overallAccuracy)}">${A_PCT(st.overallAccuracy)}</strong></span>
+            <span>Studied <strong>${A_DUR(st.timeStudiedMs)}</strong></span>
+            <span class="text-smoke">${A_DATE(st.lastActive)}</span>
+          </span>
+        </summary>
+
+        <div class="space-y-4 border-t border-goldsoft px-3 py-3">
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+            ${stat("Quiz attempts", st.quizAttempts)}
+            ${stat("Quiz accuracy", `<span class="${A_ACC_CLASS(st.quizAccuracy)}">${A_PCT(st.quizAccuracy)}</span>`)}
+            ${stat("Falling matches", `${st.fallingCorrect}/${st.fallingAttempts}`)}
+            ${stat("Falling best", `L${st.fallingBestLevel} · ${st.fallingHighScore}`)}
+            ${stat("Stroke chars", `${st.strokeMastered}/${st.strokeCharCount}`)}
+            ${stat("Sessions", st.sessionCount || "—")}
+            ${stat("Answering time", A_DUR(st.quizAnswerMs))}
+          </div>
+
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div class="rounded-lg border border-goldsoft bg-[#fffdf8] p-2.5">
+              <div class="mb-1 text-xs font-black uppercase tracking-wide text-green-700">Strengths</div>
+              <div class="flex flex-wrap gap-1.5">${chips(st.strengths,"border-green-300 bg-green-50 text-green-800")}</div>
+            </div>
+            <div class="rounded-lg border border-goldsoft bg-[#fffdf8] p-2.5">
+              <div class="mb-1 text-xs font-black uppercase tracking-wide text-red-700">Needs work</div>
+              <div class="flex flex-wrap gap-1.5">${chips(st.weaknesses,"border-red-300 bg-red-50 text-red-800")}</div>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <div class="mb-1 text-xs font-black uppercase tracking-wide text-smoke">By character</div>
+            <table class="w-full min-w-[640px] border-collapse text-sm">
+              <thead><tr class="text-left text-[11px] uppercase tracking-wide text-smoke">
+                <th class="px-2 py-1.5">Character</th>
+                <th class="px-2 py-1.5 text-center">Attempts</th>
+                <th class="px-2 py-1.5 text-center">Wrong</th>
+                <th class="px-2 py-1.5 text-center">Accuracy</th>
+                <th class="px-2 py-1.5 text-center">Avg time</th>
+                <th class="px-2 py-1.5 text-center">Avg tries to master</th>
+                <th class="px-2 py-1.5 text-center">Directions</th>
+              </tr></thead>
+              <tbody>${wordRows}</tbody>
+            </table>
+          </div>
+
+          <div class="grid gap-3 lg:grid-cols-3">
+            <div class="overflow-x-auto">
+              <div class="mb-1 text-xs font-black uppercase tracking-wide text-smoke">By direction</div>
+              <table class="w-full min-w-[280px] border-collapse text-sm">
+                <thead><tr class="text-left text-[11px] uppercase tracking-wide text-smoke">
+                  <th class="px-2 py-1.5">Direction</th><th class="px-2 py-1.5 text-center">Att.</th>
+                  <th class="px-2 py-1.5 text-center">Wrong</th><th class="px-2 py-1.5 text-center">Acc.</th>
+                </tr></thead>
+                <tbody>${dirRows}</tbody>
+              </table>
+            </div>
+            <div class="overflow-x-auto">
+              <div class="mb-1 text-xs font-black uppercase tracking-wide text-smoke">Falling game</div>
+              <table class="w-full min-w-[240px] border-collapse text-sm">
+                <thead><tr class="text-left text-[11px] uppercase tracking-wide text-smoke">
+                  <th class="px-2 py-1.5">Character</th><th class="px-2 py-1.5 text-center">Matches</th><th class="px-2 py-1.5 text-center">Errors</th>
+                </tr></thead>
+                <tbody>${fallingRows}</tbody>
+              </table>
+            </div>
+            <div class="overflow-x-auto">
+              <div class="mb-1 text-xs font-black uppercase tracking-wide text-smoke">Stroke practice</div>
+              <table class="w-full min-w-[200px] border-collapse text-sm">
+                <thead><tr class="text-left text-[11px] uppercase tracking-wide text-smoke">
+                  <th class="px-2 py-1.5">Char</th><th class="px-2 py-1.5 text-center">Reps</th><th class="px-2 py-1.5 text-center">Mistakes</th>
+                </tr></thead>
+                <tbody>${strokeRows}</tbody>
+              </table>
+            </div>
+          </div>
+
+          <p class="text-[11px] text-smoke">First seen ${A_DATE(st.firstActive)} · ${st.totalAttempts} recorded attempts. "Avg tries to master" counts quiz answers until ${target} correct in a direction.</p>
+        </div>
+      </details>`;
     }).join("");
+
     els.adminBody.innerHTML = `
-      <table class="w-full min-w-[560px] border-collapse text-sm">
-        <thead><tr class="text-left text-xs uppercase tracking-wide text-smoke">
-          <th class="px-2 py-2">Student</th>
-          <th class="px-2 py-2 text-center">Words mastered</th>
-          <th class="px-2 py-2 text-center">Quiz correct</th>
-          <th class="px-2 py-2 text-center">Falling matches</th>
-          <th class="px-2 py-2 text-center">Stroke chars</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-      <p class="mt-3 text-xs text-smoke">Animals topic. ${emails.length} student${emails.length===1?"":"s"} with saved progress.</p>`;
+      <div class="mb-3 flex flex-wrap items-baseline gap-x-3 text-xs text-smoke">
+        <span><strong class="text-ink">${A_ESC(data.topicTitle||"Animals")}</strong> topic</span>
+        <span>${students.length} student${students.length===1?"":"s"}</span>
+        <span>Generated ${A_DATE(data.generatedAt)}</span>
+      </div>
+      <div class="space-y-2">${cards}</div>`;
   }
 
   /* ---------------- Identity / bootstrap ---------------- */
@@ -1580,6 +1797,11 @@
         if(data.topics && data.topics.length) renderTopics(data.topics);
         applyIdentity(data);
         adoptServerMastery(data.mastery);
+        if(data && data.currentUser){
+          state.sessionCount = (state.sessionCount || 0) + 1;
+          persistLocal();
+          SYNC.mastery();
+        }
         setMode(currentMode);
       })
       .catch(() => {
@@ -1599,6 +1821,7 @@
   els.fallPauseBtn.addEventListener("click",pauseFalling);
   els.fallNewBtn.addEventListener("click",newFallingRun);
   els.fallNextBtn.addEventListener("click",nextFallingLevel);
+  els.fallCloseBtn.addEventListener("click",()=>setMode(previousMode && MODES[previousMode] && previousMode!=="falling" && previousMode!=="stroke" ? previousMode : "mixed"));
   els.strokeWatchBtn.addEventListener("click",watchStroke);
   els.strokePracticeBtn.addEventListener("click",practiceStroke);
   els.strokeOutlineBtn.addEventListener("click",toggleStrokeOutline);

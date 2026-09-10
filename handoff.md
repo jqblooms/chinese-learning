@@ -2,6 +2,42 @@
 
 Living project doc. Update after every session's changes.
 
+## 2026-09-10 — teacher view, seed teachers, falling full-screen
+
+- **Teacher view rebuilt.** `getChineseAdminData` now returns a detailed
+  per-student breakdown from `buildAdminBreakdown_` in `Analytics.gs`
+  (reads the raw Attempts log + each Mastery snapshot):
+  - overall + quiz accuracy, words mastered, sessions, first/last active
+  - per character: attempts, wrong, accuracy, avg answer time, **avg
+    attempts to master** (quiz answers until `CL_TARGET` correct in a
+    direction), directions mastered
+  - per direction: attempts, wrong, accuracy
+  - **strengths / needs-work** chips (characters ranked by accuracy, min
+    3 attempts)
+  - falling matches/errors per character + high score / best level
+  - stroke reps + mistakes per character
+  - **time studied** (see below)
+  The UI is now an accordion of expandable student cards, not one flat
+  table; the modal is a fixed-height flex panel that scrolls internally.
+- **Seed teachers.** `CL_SEED_TEACHERS` in `Code.gs` (currently
+  `sisiwu@bloomsbury.ac.th`). `isTeacherEmail_` treats these as teachers
+  without needing a sheet row; they are written into the Teachers sheet on
+  creation and `syncSeedTeachers_()` back-fills them on every admin load,
+  so this works on the already-created workbook too.
+- **Study-time tracking.** Client adds 5 s per tick to
+  `state.timeStudiedMs` while the lesson is visible, focused, and had
+  interaction within 90 s; flushed with the mastery snapshot.
+  `state.sessionCount` increments once per signed-in page load. Both ride
+  the existing mastery sync (no new endpoint) and are surfaced in the
+  teacher view.
+- **Falling characters is now a full-screen panel.** Entering the mode
+  adds `.falling-fullscreen` to `#fallingArea` (`position:fixed; inset:0`,
+  flex column) and `body.falling-lock`; the field is `flex:1; min-height:0`
+  so it sizes to whatever space is left after the compact HUD/controls and
+  the meanings row. An **Exit** button returns to the previous non-special
+  mode (`previousMode`, default `mixed`). Verified fits with no scroll at
+  1300×860 and 375×812.
+
 ## 2026-09-10 — project created
 
 New standalone project. Does **not** share code, a repo, or an Apps Script

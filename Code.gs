@@ -20,6 +20,12 @@ var CL_SHEETS = Object.freeze({
   TEACHERS: 'Teachers'
 });
 
+// Accounts that can always open the Teacher view, in addition to whatever
+// is in the Teachers sheet. Seeded into the sheet when it is first created
+// and re-checked on every admin load, so adding an email here still takes
+// effect on an existing workbook.
+var CL_SEED_TEACHERS = Object.freeze(['sisiwu@bloomsbury.ac.th']);
+
 var CL_ATTEMPT_HEADERS = Object.freeze([
   'Timestamp', 'Email', 'Topic', 'Mode', 'Direction',
   'WordId', 'Prompt', 'Answer', 'Expected', 'Correct', 'Source', 'ElapsedMs'
@@ -117,17 +123,18 @@ function syncChineseProgress(payload) {
   }
 }
 
-/** Teacher-only. Returns every student's per-topic mastery and recent attempts. */
+/**
+ * Teacher-only. Returns a detailed per-student breakdown for the Teacher
+ * view: mastery, attempts needed, per-character difficulty, direction
+ * strengths and weaknesses, falling and stroke stats, and time studied.
+ */
 function getChineseAdminData() {
   var email = requireSchoolEmail_();
   if (!isTeacherEmail_(email)) {
     throw new Error('This account is not on the Chinese Learning teacher list.');
   }
-  return {
-    students: readAllMastery_(),
-    recentAttempts: readRecentAttempts_(500),
-    topics: CL_TOPIC_SUMMARY_()
-  };
+  syncSeedTeachers_();
+  return buildAdminBreakdown_('animals');
 }
 
 /* ------------------------------------------------------------------ *
