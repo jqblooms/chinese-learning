@@ -59,12 +59,23 @@ students routinely practise on two devices in parallel.
 are duplicated on purpose (client needs pinyin/sound-guide fields the
 validator does not). Any edit to the animal list must touch both.
 
-### Deploy state
+### Deploy state (2026-09-10)
 
-- Apps Script project: created this session via `clasp create --type webapp`.
-  `scriptId` is in `.clasp.json`.
-- `clasp push` + `clasp deploy` run this session.
-- GitHub: `https://github.com/jqblooms/chinese-learning` (public).
+- Apps Script project created via `clasp create-script --type standalone`.
+  `scriptId` `1vXL3YOrATx9kEJuUPpN9fZKymPxE0SwhzTqH_sze-6ypa-3D-ngiPcHa`
+  (also in `.clasp.json`). Editor:
+  `https://script.google.com/d/1vXL3YOrATx9kEJuUPpN9fZKymPxE0SwhzTqH_sze-6ypa-3D-ngiPcHa/edit`
+- `clasp push` + `clasp create-deployment` run this session. Deployment
+  `AKfycbyYDPe1hehMHxain7Pt8J3q58GrTEhsLkzMa2F2Qddn4BlV3sC42__N-eVKKHyyRRVy` @1.
+  Web app: `https://script.google.com/macros/s/AKfycbyYDPe1hehMHxain7Pt8J3q58GrTEhsLkzMa2F2Qddn4BlV3sC42__N-eVKKHyyRRVy/exec`
+- **First run still needs James**: open the web app URL once while signed
+  in as jamesquinney@bloomsbury.ac.th and accept the OAuth consent
+  (userinfo.email + spreadsheets). That first authenticated call creates
+  the `Chinese Learning Data` spreadsheet and seeds him as teacher.
+- `clasp create-script` overwrites `appsscript.json` with a bare default;
+  the real manifest (Asia/Bangkok, scopes, webapp block) was rewritten
+  after create and before push. Watch for this on any future re-create.
+- GitHub: `https://github.com/jqblooms/chinese-learning` (public), `main`.
 
 ### Next
 
