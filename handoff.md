@@ -2,6 +2,33 @@
 
 Living project doc. Update after every session's changes.
 
+## 2026-09-10 — Year 7-9 content
+
+Five more topics from the unit plans, added to `CURRICULUM` (Index.html)
+and `CL_TOPICS` (Curriculum.gs) — word lists verified identical:
+
+- **Year 7 · Unit 1: Foundation & Greetings** (中文基础与问候, HSK 1) —
+  34 words: numbers 0-100, pronouns, 叫/是/有, age / birthday / month /
+  day, question words, nationalities.
+- **Year 8 · Unit 1: My Town & Neighbourhood** (我的城市和社区, HSK 2) —
+  32 words: places, location words, 有/没有, opinion adjectives.
+- **Year 8 · Unit 2: Directions & Getting Around** (问路与交通, HSK 2) —
+  29 words: 一直走 / 左转 / 右转, 先…然后…最后, transport, 请问 / 怎么走.
+- **Year 9 · Unit 1: Me & My Family** (我和我的家人, HSK 3) — 35 words:
+  family members, appearance & personality, frequency words, 一样/不一样.
+- **Year 9 · Unit 2: Friends & Relationships** (朋友与人际关系, HSK 3) —
+  30 words: friendship & personality, shared activities, opinion
+  connectives.
+
+`GROUP_ORDER` / `CL_GROUP_ORDER` are now
+`Tutorial, Year 7, Year 8, Year 9, Year 10, Year 11`. Lesson badges number
+within each year. `defaultAdminTopic_` (Teacher view default) is the first
+non-Tutorial unit, now Year 7 Unit 1.
+
+`pickChoiceWords` also drops distractors that are **homophones** of the
+answer (它/他/她 all "tā"), so the Y7 他/她 pair can't produce an
+ambiguous multiple-choice option.
+
 ## 2026-09-10 — full polish pass
 
 - **Question no longer "flickers" a second or two after opening a unit.**
