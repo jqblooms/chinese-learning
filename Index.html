@@ -389,6 +389,20 @@
     </div>
   </div>
 
+  <!-- Sign-in nudge (shown to visitors without a Bloomsbury account) -->
+  <div id="signinModal" class="fixed inset-0 z-[80] hidden items-center justify-center bg-ink/30 p-4">
+    <div class="relative w-[min(340px,92vw)] rounded-2xl border border-goldsoft bg-paper p-5 text-center shadow-paper">
+      <button id="signinClose" type="button" class="absolute right-1.5 top-1.5 rounded-md p-1 text-smoke hover:text-ink" aria-label="Dismiss">
+        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </button>
+      <div class="mx-auto mb-2 grid h-11 w-11 place-items-center rounded-full bg-[#fff7dc] text-2xl">学</div>
+      <h2 class="font-black">Sign in to save your progress</h2>
+      <p class="mt-1 text-sm leading-5 text-smoke">Sign in with your Bloomsbury Google account so your practice is saved and your teacher can see it. You can keep practising without signing in.</p>
+      <button id="signinGo" type="button" class="mt-3 w-full rounded-xl bg-cinnabar px-4 py-2.5 font-black text-white shadow-seal">Sign in with Google</button>
+      <p class="mt-2 text-[11px] text-smoke">Sign in, then reload this page.</p>
+    </div>
+  </div>
+
   <!-- Teacher view -->
   <div id="adminModal" class="fixed inset-0 z-[70] hidden items-start justify-center bg-ink/50 p-2 sm:p-4">
     <div class="mx-auto flex max-h-[96vh] w-[min(1180px,98vw)] flex-col rounded-2xl border border-goldsoft bg-paper shadow-paper">
@@ -635,6 +649,7 @@
     sidebarOpen:$("#sidebarOpen"), sidebarClose:$("#sidebarClose"),
     openAdminBtn:$("#openAdminBtn"), adminModal:$("#adminModal"),
     adminBody:$("#adminBody"), adminClose:$("#adminClose"), adminRefresh:$("#adminRefresh"),
+    signinModal:$("#signinModal"), signinClose:$("#signinClose"), signinGo:$("#signinGo"),
     fallLevel:$("#fallLevel"), fallPoints:$("#fallPoints"), fallHighScore:$("#fallHighScore"),
     fallCorrect:$("#fallCorrect"), fallErrors:$("#fallErrors"), fallSpeed:$("#fallSpeed"),
     fallStartBtn:$("#fallStartBtn"), fallPauseBtn:$("#fallPauseBtn"),
@@ -2101,11 +2116,25 @@
   }
 
   /* ---------------- Identity / bootstrap ---------------- */
+  const SIGNIN_DISMISS_KEY = "chineseLearning:v1:signinDismissed";
+
+  function showSigninModal(){
+    try{ if(sessionStorage.getItem(SIGNIN_DISMISS_KEY)) return; }catch(e){}
+    els.signinModal.classList.remove("hidden");
+    els.signinModal.classList.add("flex");
+  }
+  function hideSigninModal(remember){
+    els.signinModal.classList.add("hidden");
+    els.signinModal.classList.remove("flex");
+    if(remember){ try{ sessionStorage.setItem(SIGNIN_DISMISS_KEY,"1"); }catch(e){} }
+  }
+
   function applyIdentity(data){
     const email = data && data.currentUser ? data.currentUser : "";
     SYNC.setSignedIn(!!email);
     if(email){
       els.identityLine.textContent = "Signed in: " + email.split("@")[0];
+      hideSigninModal(false);
       if(data.isTeacher){
         els.openAdminBtn.classList.remove("hidden");
       }
@@ -2113,6 +2142,7 @@
       els.identityLine.textContent = HAS_BACKEND
         ? "Not signed in. Progress is saved on this device only."
         : "Preview mode. Progress is saved in this browser.";
+      if(HAS_BACKEND) showSigninModal();
     }
     SYNC.setStatus("saved");
   }
@@ -2186,6 +2216,11 @@
   els.openAdminBtn.addEventListener("click",openAdmin);
   els.adminClose.addEventListener("click",closeAdmin);
   els.adminRefresh.addEventListener("click",loadAdmin);
+  els.signinClose.addEventListener("click",()=>hideSigninModal(true));
+  els.signinModal.addEventListener("click",e=>{ if(e.target===els.signinModal) hideSigninModal(true); });
+  els.signinGo.addEventListener("click",()=>{
+    window.open("https://accounts.google.com/", "_blank", "noopener");
+  });
 
   if("speechSynthesis" in window) speechSynthesis.onvoiceschanged=()=>{};
 

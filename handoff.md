@@ -4,19 +4,45 @@ Living project doc. Update after every session's changes.
 
 ## 2026-09-10 — Year 11 units + multi-topic engine + web-app access fix
 
-### Web-app access fix (mobile "refuses to load")
+### Web-app access — "not accessible" fix
 
-`appsscript.json` webapp block changed from `ANYONE_ANONYMOUS` to
-`access: "DOMAIN"` (still `executeAs: "USER_DEPLOYING"`). The anonymous
-deployment was dead-ending on mobile: it tried to authenticate the user's
-personal Google account and the error page had no account switcher.
-`DOMAIN` restricts access to `@bloomsbury.ac.th`, so Google shows its own
-account chooser for the wrong account and every visitor arrives with a
-verified school identity. `USER_DEPLOYING` is kept so all requests can
-still reach the single shared data spreadsheet (owned by the deployer).
-**Redeploy is required for this to take effect, and James must still do
-the one-time authorization** (open the web-app URL once as
-jamesquinney@bloomsbury.ac.th and accept the OAuth consent).
+The old deployment
+`AKfycbyYDPe1hehMHxain7Pt8J3q58GrTEhsLkzMa2F2Qddn4BlV3sC42__N-eVKKHyyRRVy`
+is **dead**: its web-app access setting got stuck requiring sign-in, and
+`clasp update-deployment` cannot change an existing deployment's
+access/executeAs. Redeploying to it does nothing.
+
+**New live deployment:**
+`AKfycbxM5ZmyrpPP_PikikX9_yPdDPpFn0Glbt0ki8Ap04MTa-EhWVBeB488KITuDFMlubTw`
+Web app:
+`https://script.google.com/macros/s/AKfycbxM5ZmyrpPP_PikikX9_yPdDPpFn0Glbt0ki8Ap04MTa-EhWVBeB488KITuDFMlubTw/exec`
+Created fresh with `clasp create-deployment` while the manifest had
+`access: "ANYONE_ANONYMOUS"` + `executeAs: "USER_DEPLOYING"`, so it serves
+anonymously (verified: HTTP 200, no login redirect, app renders). Because
+`update-deployment` keeps the original access setting, redeploying code to
+THIS id is safe from now on — do not `create-deployment` again unless you
+deliberately want a new URL.
+
+`appsscript.json` is back to `ANYONE_ANONYMOUS` / `USER_DEPLOYING` (the
+`DOMAIN` experiment made it worse — James's default browser account is
+personal and the switcher wasn't obvious). Identity model: with
+`ANYONE_ANONYMOUS` + `USER_DEPLOYING`, `Session.getActiveUser().getEmail()`
+returns the visitor's address only when they are a same-domain
+(`@bloomsbury.ac.th`) user; everyone else is anonymous. That is the split
+we want.
+
+**Sign-in nudge:** when `getBootstrapData` returns no `currentUser`, the
+client shows a small centred modal ("Sign in to save your progress", a
+"Sign in with Google" button opening accounts.google.com, and a tiny x).
+Dismissal is remembered for the browser session (`sessionStorage`
+`chineseLearning:v1:signinDismissed`). Gated on `HAS_BACKEND` so it never
+shows in local preview.
+
+**Still required from James:** open the new web-app URL once signed in as
+jamesquinney@bloomsbury.ac.th and accept the OAuth consent
+(userinfo.email + spreadsheets). Anonymous browsing already works; that
+first authorised call is what creates the data spreadsheet and enables
+saving.
 
 ### Multi-topic engine
 
