@@ -2,6 +2,16 @@
 
 Living project doc. Update after every session's changes.
 
+## 2026-09-10 — Year 7 Unit 1 added; Y7 Unit 2 relabelled
+
+- **Year 7 · Unit 1: Foundation & Greetings** (`y7_foundation`, 18 words) —
+  你好 / 您好 / 你们好 / 大家好 / 老师好, politeness (谢谢 / 不客气 /
+  对不起 / 没关系), 再见, 你/您/你们, 们. From the real Unit 1 plan
+  (`.docx_` — trailing underscore, wasn't in the original zip).
+- The earlier `y7_greetings` topic (the "All About Me" plan whose template
+  header still said "Unit 1") is now **Unit 2: All About Me**, lesson 2.
+- `TOPIC_ORDER` gains `y7_foundation` before `y7_greetings`.
+
 ## 2026-09-10 — Year 7-9 content
 
 Five more topics from the unit plans, added to `CURRICULUM` (Index.html)

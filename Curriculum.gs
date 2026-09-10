@@ -48,7 +48,36 @@ var CL_TOPICS = Object.freeze({
     ]
   },
 
-  // Year 7 Term 1A (HSK 1 support). Core Language from the unit plan.
+  // Year 7 Term 1A (HSK 1 support). Core Language from the unit plans.
+  y7_foundation: {
+    id: 'y7_foundation',
+    group: 'Year 7',
+    lesson: 1,
+    title: 'Unit 1: Foundation & Greetings',
+    subtitle: '中文基础与问候 · HSK 1',
+    status: 'available',
+    words: [
+      { id: 'hello',       zh: '你好',   en: 'hello',                 py: 'nǐ hǎo' },
+      { id: 'hellopolite', zh: '您好',   en: 'hello (polite)',        py: 'nín hǎo' },
+      { id: 'hellogroup',  zh: '你们好', en: 'hello (to a group)',    py: 'nǐmen hǎo' },
+      { id: 'helloall',    zh: '大家好', en: 'hello everyone',        py: 'dàjiā hǎo' },
+      { id: 'goodmorning', zh: '早上好', en: 'good morning',          py: 'zǎoshang hǎo' },
+      { id: 'helloteacher',zh: '老师好', en: 'hello, teacher',        py: 'lǎoshī hǎo' },
+      { id: 'thankyou',    zh: '谢谢',   en: 'thank you',             py: 'xièxie' },
+      { id: 'yourewelcome',zh: '不客气', en: "you're welcome",        py: 'bú kèqi' },
+      { id: 'sorry',       zh: '对不起', en: 'sorry',                 py: 'duìbuqǐ' },
+      { id: 'nevermind',   zh: '没关系', en: "it's OK / never mind",  py: 'méi guānxi' },
+      { id: 'goodbye',     zh: '再见',   en: 'goodbye',               py: 'zàijiàn' },
+      { id: 'you',         zh: '你',     en: 'you',                   py: 'nǐ' },
+      { id: 'youpolite',   zh: '您',     en: 'you (polite)',          py: 'nín' },
+      { id: 'youplural',   zh: '你们',   en: 'you (plural)',          py: 'nǐmen' },
+      { id: 'everyone',    zh: '大家',   en: 'everyone',              py: 'dàjiā' },
+      { id: 'teacher',     zh: '老师',   en: 'teacher',               py: 'lǎoshī' },
+      { id: 'pluralmarker',zh: '们',     en: 'plural marker (people)',py: 'men' },
+      { id: 'good',        zh: '好',     en: 'good / well',           py: 'hǎo' }
+    ]
+  },
+
   y7_greetings: {
     id: 'y7_greetings',
     group: 'Year 7',

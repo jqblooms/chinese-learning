@@ -479,6 +479,43 @@
       ]
     },
 
+    y7_foundation: {
+      group: "Year 7",
+      lesson: 1,
+      title: "Unit 1: Foundation & Greetings",
+      subtitle: "中文基础与问候 · HSK 1",
+      words: [
+        {id:"hello",       zh:"你好",   en:"hello",                 py:"nǐ hǎo"},
+        {id:"hellopolite", zh:"您好",   en:"hello (polite)",        py:"nín hǎo"},
+        {id:"hellogroup",  zh:"你们好", en:"hello (to a group)",    py:"nǐmen hǎo"},
+        {id:"helloall",    zh:"大家好", en:"hello everyone",        py:"dàjiā hǎo"},
+        {id:"goodmorning", zh:"早上好", en:"good morning",          py:"zǎoshang hǎo"},
+        {id:"helloteacher",zh:"老师好", en:"hello, teacher",        py:"lǎoshī hǎo"},
+        {id:"thankyou",    zh:"谢谢",   en:"thank you",             py:"xièxie"},
+        {id:"yourewelcome",zh:"不客气", en:"you're welcome",        py:"bú kèqi"},
+        {id:"sorry",       zh:"对不起", en:"sorry",                 py:"duìbuqǐ"},
+        {id:"nevermind",   zh:"没关系", en:"it's OK / never mind",  py:"méi guānxi"},
+        {id:"goodbye",     zh:"再见",   en:"goodbye",               py:"zàijiàn"},
+        {id:"you",         zh:"你",     en:"you",                   py:"nǐ"},
+        {id:"youpolite",   zh:"您",     en:"you (polite)",          py:"nín"},
+        {id:"youplural",   zh:"你们",   en:"you (plural)",          py:"nǐmen"},
+        {id:"everyone",    zh:"大家",   en:"everyone",              py:"dàjiā"},
+        {id:"teacher",     zh:"老师",   en:"teacher",               py:"lǎoshī"},
+        {id:"pluralmarker",zh:"们",     en:"plural marker (people)",py:"men"},
+        {id:"good",        zh:"好",     en:"good / well",           py:"hǎo"}
+      ],
+      grammar: [
+        {zh:"你好！/ 您好！",            en:"Hello! / Hello (polite)!"},
+        {zh:"你们好！/ 大家好！",        en:"Hello (to a group)! / Hello everyone!"},
+        {zh:"老师好！",                  en:"Hello, teacher!"},
+        {zh:"谢谢！—— 不客气。",         en:"Thank you! — You're welcome."},
+        {zh:"对不起。—— 没关系。",       en:"Sorry. — It's OK."},
+        {zh:"再见！",                    en:"Goodbye!"},
+        {zh:"你 (informal) / 您 (polite) / 你们 (plural)", en:"you — informal / polite / plural"},
+        {zh:"们 makes a people-word plural：你 → 你们，我 → 我们", en:"们 turns a person word into a plural"}
+      ]
+    },
+
     y7_greetings: {
       group: "Year 7",
       lesson: 2,
@@ -956,7 +993,7 @@
     }
   };
 
-  const TOPIC_ORDER = ["animals", "y7_greetings", "y8_town", "y8_directions", "y9_family", "y9_friends", "y10_home", "y10_town", "y11_school", "y11_careers"];
+  const TOPIC_ORDER = ["animals", "y7_foundation", "y7_greetings", "y8_town", "y8_directions", "y9_family", "y9_friends", "y10_home", "y10_town", "y11_school", "y11_careers"];
   const GROUP_ORDER = ["Tutorial", "Year 7", "Year 8", "Year 9", "Year 10", "Year 11"];
   const LAST_TOPIC_KEY = "chineseLearning:v1:lastTopic";
   const TARGET = 3;
