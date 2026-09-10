@@ -4,15 +4,20 @@ Living project doc. Update after every session's changes.
 
 ## 2026-09-11 — stroke mode rebuilt full-screen; mobile + falling fixes
 
-**Not yet deployed** — clasp auth expired mid-session (`invalid_grant` /
-`invalid_rapt`, a Workspace reauth-proof-token requirement on the sensitive
-scopes; the stored `~/.clasprc.json` refresh token is intact but Google
-demands an interactive reauth). Needs `clasp login` in a **real TTY** —
-the `--no-localhost` flow can't be piped because clasp 3.x prompts via
-`@inquirer/prompts`, which aborts on a non-TTY stdin. Code is committed +
-pushed to GitHub. To ship once reauthed: `clasp push --force` then
-`clasp update-deployment -d "…" AKfycbxM5ZmyrpPP_PikikX9_yPdDPpFn0Glbt0ki8Ap04MTa-EhWVBeB488KITuDFMlubTw`.
-Last live deployment is still **@24**.
+**Deployed @25.**
+
+**clasp reauth note (for next time the token dies with `invalid_grant` /
+`invalid_rapt`):** don't fight clasp's interactive prompt. Run
+`clasp login --redirect-port 8888` in the background — its localhost flow
+needs **no TTY and no stdin**: it starts a server on the given port,
+prints the `accounts.google.com/o/oauth2/...` URL, and blocks until the
+redirect hits it. Open that URL in the Browser pane; if the machine's
+Google session already granted the clasp scopes, Google 302s straight to
+`http://localhost:8888/?code=...` and clasp finishes on its own (writes
+`~/.clasprc.json`, prints "You are logged in as …", exits 0). Then
+`clasp push --force` + `clasp update-deployment …`. (`--no-localhost`
+does NOT work headless — that path prompts via `@inquirer/prompts`, which
+aborts on non-TTY stdin; `winpty` also fails with no attached console.)
 
 ### Falling: drag-to-answer no longer counts as hitting the floor
 
