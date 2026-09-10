@@ -2,9 +2,37 @@
 
 Living project doc. Update after every session's changes.
 
+## 2026-09-11 — study time no longer resets (deployed @26)
+
+James: "the study time reset whilst testing." `state.timeStudiedMs` is a
+per-topic cumulative counter (Teacher view sums it). Three ways it was
+leaking:
+
+1. **`adoptServerMastery` replaced `state` wholesale** (`state =
+   serverState`) whenever `localEmpty || serverNewer`. `localEmpty` was
+   `attempts===0 && correct===0` — but stroke and falling practice never
+   touch those, so a stroke/falling testing session always looked empty
+   and every topic-switch/reload re-adopted the server copy, dropping any
+   study time accrued since the last sync. Fix: `serverState.timeStudiedMs
+   = Math.max(server, local)` (same for `sessionCount`) before adopting,
+   so cumulative counters can't move backwards; and `localEmpty` now also
+   requires zero study time and no stroke/falling activity
+   (`hasLocalActivityStroke/Falling` helpers).
+2. **Study tick persisted to localStorage only every 20 s** (every 4th
+   5 s tick). A reload lost up to ~20 s. Now `persistLocal()` runs every
+   tick; only the network `SYNC.mastery()` stays on the 20 s throttle.
+3. **`switchTopic` didn't bank the outgoing topic** — it flushed and
+   reloaded without a `persistLocal()` first, so in-memory study time
+   since the last tick was lost on every switch. Added `persistLocal()`
+   before `SYNC.flush()`.
+
+Also: `SYNC.flush()` now calls `persistLocal()` before sending a mastery
+snapshot, so the snapshot's `updatedAt` reflects the send moment (makes
+the `serverNewer` comparison in `adoptServerMastery` honest).
+
 ## 2026-09-11 — stroke mode rebuilt full-screen; mobile + falling fixes
 
-**Deployed @25.**
+**Deployed @25** (superseded by @26 above).
 
 **clasp reauth note (for next time the token dies with `invalid_grant` /
 `invalid_rapt`):** don't fight clasp's interactive prompt. Run

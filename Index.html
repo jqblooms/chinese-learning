@@ -1376,10 +1376,10 @@
     if(els.lessonRoot.classList.contains("hidden")) return;
     if(Date.now() - lastInteraction > STUDY_IDLE_MS) return;
     state.timeStudiedMs = (state.timeStudiedMs || 0) + STUDY_TICK_MS;
+    persistLocal();                       // keep localStorage current every tick
     studyTickAccrued += STUDY_TICK_MS;
-    if(studyTickAccrued >= 20000){
+    if(studyTickAccrued >= 20000){        // but only hit the network every 20s
       studyTickAccrued = 0;
-      persistLocal();
       SYNC.mastery();
     }
   }, STUDY_TICK_MS);
@@ -1460,7 +1460,9 @@
       const leftover = rest.concat(mine.slice(80));
       if(!batch.length && !hasMasteryToSend){ queue = leftover; return; }
       queue = leftover;
+      const sendingMastery = hasMasteryToSend;
       hasMasteryToSend = false;
+      if(sendingMastery){ try{ persistLocal(); }catch(e){} }  // stamp updatedAt so the snapshot's freshness is honest
       const payload = {
         topic: currentTopic,
         attempts: batch.map(({_topic, ...a}) => a),
@@ -2594,6 +2596,7 @@
 
     if(currentMode === "falling") stopFalling(false);
     if(currentMode === "stroke") cancelStrokeQuiz();
+    try{ persistLocal(); }catch(e){}   // bank this topic's in-memory study time before we swap it out
     try{ SYNC.flush(); }catch(e){}
 
     loadTopic(topicId);
@@ -2964,7 +2967,15 @@
     const entry = mastery && mastery[currentTopic];
     if(!entry || !entry.data) return false;
     const serverState = coerceState(entry.data);
-    const localEmpty = state.attempts === 0 && state.correct === 0;
+    // Cumulative counters must never move backwards when a snapshot is
+    // adopted. Stroke and falling practice never touch attempts/correct,
+    // so a testing session can rack up study time while still looking
+    // "empty" — without this, every topic switch or reload would wipe it.
+    serverState.timeStudiedMs = Math.max(serverState.timeStudiedMs||0, state.timeStudiedMs||0);
+    serverState.sessionCount  = Math.max(serverState.sessionCount||0,  state.sessionCount||0);
+    const localEmpty = state.attempts === 0 && state.correct === 0
+      && (state.timeStudiedMs||0) === 0
+      && !hasLocalActivityStroke() && !hasLocalActivityFalling();
     const serverNewer = (Number(serverState.updatedAt)||0) > (Number(state.updatedAt)||0);
     if(localEmpty || serverNewer){
       state = serverState;
@@ -2972,6 +2983,16 @@
       return true;
     }
     return false;
+  }
+  function hasLocalActivityStroke(){
+    const s = state.stroke || {};
+    return Object.values(s.reps||{}).some(v=>v>0) || Object.values(s.mistakes||{}).some(v=>v>0);
+  }
+  function hasLocalActivityFalling(){
+    const f = state.falling || {};
+    return (f.highScore||0) > 0 || (f.bestLevel||1) > 1
+      || Object.values(f.totalCorrect||{}).some(v=>v>0)
+      || Object.values(f.totalWrong||{}).some(v=>v>0);
   }
 
   function bootstrap(){
