@@ -2,6 +2,40 @@
 
 Living project doc. Update after every session's changes.
 
+## 2026-09-11 — reveal-answer, falling breaks, stroke auto-practice, Learn default (deployed @27)
+
+- **Learn mode no longer shows the answer up front.** `#learnAnswer` stays
+  hidden and the correct choice is no longer auto-highlighted; a new
+  **👁️ Reveal answer** button (`revealAnswer()`, next to the audio
+  buttons) shows both for exactly 1s (`setTimeout`, tracked via
+  `revealTimer`/`learnCorrectBtn`) then hides them again. Cleared on every
+  new question (`hideRevealedAnswer()` in `renderQuestion`) and on mode
+  switch.
+- **Learn is now the default mode, and sits on the left of the navbar
+  toggle** (Quiz moved to the right) — `let learnMode = true`, the
+  `switchTopic` reset now sets `learnMode = true` (was `false`), HTML
+  button order swapped. Learn mode's own default no longer means "answer
+  shown"; it means "quiz answers don't count and you can reveal on
+  demand".
+- **Falling: levelling up is now a deliberate break.** `levelThreshold`'s
+  base doubled 90→180 (`Math.round(180 * Math.pow(level-1,1.58))`), and
+  crossing it no longer just enables a "Next level" button while play
+  continues — `fallLoop` calls `triggerLevelUp()`, which pauses the run
+  (same `fall.paused`/`cancelAnimationFrame` plumbing as manual Pause,
+  with `fallPauseBtn` disabled so the two can't fight) and shows a small
+  `#fallLevelUpOverlay` modal ("Level N unlocked!" + Continue button →
+  `continueToNextLevel()`, which does the old `nextFallingLevel()` work
+  and resumes the loop). `#fallNextBtn` is gone; the progress bar/text
+  under the controls is now purely informational. The overlay is hidden
+  defensively in `stopFalling`, `gameOverFalling`, and `resetFallingRun`
+  so it can't get stuck showing across runs/exits.
+- **Stroke practice auto-starts drawing** — no more Watch/Practice click
+  needed before a student can draw. `renderStrokeWriter`'s
+  `onLoadCharDataSuccess` now calls `practiceStroke()` directly (was just
+  setting "Ready."), and `watchStroke()`'s animation `onComplete` also
+  calls `practiceStroke()` so finishing the demo drops straight back into
+  drawing. The Watch/Practice buttons still work as manual retriggers.
+
 ## 2026-09-11 — study time no longer resets (deployed @26)
 
 James: "the study time reset whilst testing." `state.timeStudiedMs` is a

@@ -274,9 +274,9 @@
           <span id="saveDot" class="h-2 w-2 rounded-full bg-smoke"></span>
           <span id="saveText" class="hidden sm:inline">Saved on this device</span>
         </div>
-        <div id="modeToggle" class="order-last flex w-full overflow-hidden rounded-lg border border-goldsoft sm:order-none sm:w-auto" role="group" aria-label="Quiz or Learn mode">
-          <button id="quizModeBtn" type="button" aria-pressed="true" class="lm-seg flex-1 px-4 py-2 text-sm font-black sm:flex-none">Quiz</button>
-          <button id="learnModeBtn" type="button" aria-pressed="false" class="lm-seg flex-1 px-4 py-2 text-sm font-black sm:flex-none">Learn</button>
+        <div id="modeToggle" class="order-last flex w-full overflow-hidden rounded-lg border border-goldsoft sm:order-none sm:w-auto" role="group" aria-label="Learn or Quiz mode">
+          <button id="learnModeBtn" type="button" aria-pressed="true" class="lm-seg flex-1 px-4 py-2 text-sm font-black sm:flex-none">Learn</button>
+          <button id="quizModeBtn" type="button" aria-pressed="false" class="lm-seg flex-1 px-4 py-2 text-sm font-black sm:flex-none">Quiz</button>
         </div>
       </header>
 
@@ -339,6 +339,7 @@
                 <div class="mt-3 flex flex-wrap justify-center gap-2">
                   <button id="chineseAudio" type="button" class="rounded-full border border-goldsoft bg-white px-3 py-2 text-sm font-bold">🔊 Chinese</button>
                   <button id="ukAudio" type="button" class="rounded-full border border-goldsoft bg-white px-3 py-2 text-sm font-bold">🔤 UK sound guide</button>
+                  <button id="revealAnswerBtn" type="button" hidden class="rounded-full border-2 border-cinnabar bg-cinnabar px-4 py-2 text-sm font-black text-white shadow-seal disabled:cursor-not-allowed disabled:opacity-60">👁️ Reveal answer</button>
                 </div>
                 <div id="learnAnswer" class="mt-4 rounded-xl border border-goldsoft bg-[#fff7dc] px-3 py-2 font-black text-[#7b5718]" hidden></div>
               </div>
@@ -379,8 +380,7 @@
                 <button id="fallStartBtn" type="button" class="rounded-lg bg-cinnabar px-3 py-1.5 text-sm font-black text-white shadow-seal">Start</button>
                 <button id="fallPauseBtn" type="button" class="rounded-lg border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-sm font-black disabled:cursor-not-allowed disabled:opacity-40" disabled>Pause</button>
                 <button id="fallNewBtn" type="button" class="rounded-lg border border-goldsoft bg-[#fffaf0] px-3 py-1.5 text-sm font-black">New run</button>
-                <button id="fallNextBtn" type="button" class="rounded-lg border border-jade bg-jade px-3 py-1.5 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-40" disabled>Next level</button>
-                <span id="fallLevelProgressText" class="text-xs font-bold text-smoke">Level 2 unlocks at 90 points.</span>
+                <span id="fallLevelProgressText" class="text-xs font-bold text-smoke">Level 2 at 180 points.</span>
                 <div class="h-1.5 min-w-[80px] flex-1 overflow-hidden rounded-full border border-goldsoft bg-[#ead9b7]"><div id="fallLevelProgress" class="h-full bg-jade transition-[width] duration-300" style="width:0%"></div></div>
               </div>
 
@@ -392,6 +392,14 @@
                     <svg class="mx-auto mb-3 h-16 w-28 text-cinnabar" viewBox="0 0 140 80" fill="none" aria-hidden="true"><path d="M11 54c9-15 25-17 36-5 5-19 34-25 46-7 15-16 38-9 39 10 11-2 19 3 22 12H16c-10 0-12-6-5-10Z" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg>
                     <strong class="block text-2xl font-black">Falling Characters</strong>
                     <span class="mt-1 block text-smoke">汉字 to English meaning</span>
+                  </div>
+                </div>
+                <div id="fallLevelUpOverlay" hidden class="absolute inset-0 z-20 flex items-center justify-center bg-[#201a17]/55 text-center backdrop-blur-[2px]">
+                  <div class="mx-4 rounded-2xl border-2 border-jade bg-[#fffaf0] px-6 py-6 shadow-paper">
+                    <div class="mx-auto mb-2 w-fit rounded-full bg-[#e7f3ee] p-3 text-3xl">🎉</div>
+                    <strong id="fallLevelUpTitle" class="block text-xl font-black">Level 2 unlocked!</strong>
+                    <span class="mt-1 block text-sm text-smoke">Take a breather, then keep going.</span>
+                    <button id="fallLevelUpContinueBtn" type="button" class="mt-4 rounded-xl bg-jade px-5 py-3 font-black text-white shadow-seal">Continue to Level 2</button>
                   </div>
                 </div>
               </div>
@@ -423,7 +431,7 @@
               </div>
 
               <div class="stroke-foot">
-                <div id="strokeStatus" class="mb-2 min-h-[44px] rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-2 text-center text-sm leading-6 text-smoke" aria-live="polite">Watch the stroke order, then trace it in the grid.</div>
+                <div id="strokeStatus" class="mb-2 min-h-[44px] rounded-xl border border-goldsoft bg-[#fffaf0] px-3 py-2 text-center text-sm leading-6 text-smoke" aria-live="polite">Getting the grid ready…</div>
                 <div class="grid grid-cols-4 gap-2">
                   <button id="strokeWatchBtn" type="button" class="rounded-xl border border-goldsoft bg-[#fffaf0] px-2 py-3 text-sm font-black">Watch</button>
                   <button id="strokePracticeBtn" type="button" class="rounded-xl bg-cinnabar px-2 py-3 text-sm font-black text-white shadow-seal">Practice</button>
@@ -1232,7 +1240,7 @@
     roundLabel:$("#roundLabel"), modeNote:$("#modeNote"), direction:$("#direction"),
     prompt:$("#prompt"), supportLine:$("#supportLine"), learnAnswer:$("#learnAnswer"),
     feedback:$("#feedback"), choices:$("#choices"),
-    chineseAudio:$("#chineseAudio"), ukAudio:$("#ukAudio"),
+    chineseAudio:$("#chineseAudio"), ukAudio:$("#ukAudio"), revealAnswerBtn:$("#revealAnswerBtn"),
     continueBtn:$("#continueBtn"), completeText:$("#completeText"),
     sideMode:$("#sideMode"), progressFill:$("#progressFill"),
     overallLabel:$("#overallLabel"), overallValue:$("#overallValue"),
@@ -1255,7 +1263,9 @@
     fallLevel:$("#fallLevel"), fallPoints:$("#fallPoints"), fallHighScore:$("#fallHighScore"),
     fallCorrect:$("#fallCorrect"), fallErrors:$("#fallErrors"), fallSpeed:$("#fallSpeed"),
     fallStartBtn:$("#fallStartBtn"), fallPauseBtn:$("#fallPauseBtn"),
-    fallNewBtn:$("#fallNewBtn"), fallNextBtn:$("#fallNextBtn"), fallCloseBtn:$("#fallCloseBtn"),
+    fallNewBtn:$("#fallNewBtn"), fallCloseBtn:$("#fallCloseBtn"),
+    fallLevelUpOverlay:$("#fallLevelUpOverlay"), fallLevelUpTitle:$("#fallLevelUpTitle"),
+    fallLevelUpContinueBtn:$("#fallLevelUpContinueBtn"),
     fallModeEn:$("#fallModeEn"), fallModePy:$("#fallModePy"), fallModeLabel:$("#fallModeLabel"),
     fallLevelProgressText:$("#fallLevelProgressText"), fallLevelProgress:$("#fallLevelProgress"),
     fallMessage:$("#fallMessage"), fallField:$("#fallField"),
@@ -1346,7 +1356,7 @@
   let currentMode = state.lastMode;
   let previousMode = (currentMode === "falling" || currentMode === "stroke") ? DEFAULT_MODE : currentMode;
   let fallingTarget = state.fallingMode === "py" ? "py" : "en";
-  let learnMode = false;
+  let learnMode = true;   // Learn (practice taps don't count, reveal-on-demand) is the default mode
   let current = null;
   let locked = false;
   let recentPairs = [];
@@ -1570,13 +1580,44 @@
     }else{
       els.supportLine.textContent = d.to === "zh" ? "Choose the Chinese character." : "Choose the pinyin.";
     }
-    els.learnAnswer.hidden = !learnMode;
     els.learnAnswer.textContent = `Answer:  ${w.zh}  ·  ${w.py}  ·  ${w.en}`;
+    hideRevealedAnswer();
+    els.revealAnswerBtn.hidden = !learnMode;
     els.ukAudio.hidden = false;
     els.roundLabel.textContent = learnMode ? "Learn mode" : "Quiz mode";
-    els.modeNote.textContent = learnMode ? "Answer shown. Practice taps do not count." : "3 correct answers per direction.";
+    els.modeNote.textContent = learnMode
+      ? "Stuck? Tap Reveal answer for a one-second peek. Practice taps do not count."
+      : "3 correct answers per direction.";
     renderChoices();
     updateProgress();
+  }
+
+  // The answer stays hidden until the student asks for it, and only shows
+  // for a moment — Learn mode should let them test themselves, not just
+  // read the answer off the screen for every word.
+  let revealTimer = null;
+  let learnCorrectBtn = null;
+  function hideRevealedAnswer(){
+    clearTimeout(revealTimer);
+    revealTimer = null;
+    els.learnAnswer.hidden = true;
+    if(learnCorrectBtn) learnCorrectBtn.classList.remove("learn-highlight");
+    els.revealAnswerBtn.disabled = false;
+    els.revealAnswerBtn.textContent = "👁️ Reveal answer";
+  }
+  function revealAnswer(){
+    if(!learnMode || !current || els.revealAnswerBtn.disabled) return;
+    els.learnAnswer.hidden = false;
+    if(learnCorrectBtn) learnCorrectBtn.classList.add("learn-highlight");
+    els.revealAnswerBtn.disabled = true;
+    els.revealAnswerBtn.textContent = "👁️ Showing…";
+    clearTimeout(revealTimer);
+    revealTimer = setTimeout(()=>{
+      els.learnAnswer.hidden = true;
+      if(learnCorrectBtn) learnCorrectBtn.classList.remove("learn-highlight");
+      els.revealAnswerBtn.disabled = false;
+      els.revealAnswerBtn.textContent = "👁️ Reveal answer";
+    },1000);
   }
 
   // The correct word plus up to 5 random distractors, shuffled. Keeps the
@@ -1611,6 +1652,7 @@
   function renderChoices(){
     const d = DIRECTIONS[current.dir];
     els.choices.innerHTML = "";
+    learnCorrectBtn = null;
     (current.choices || WORDS).forEach(w => {
       const b = document.createElement("button");
       b.type = "button";
@@ -1618,7 +1660,7 @@
       if(d.to === "zh") b.classList.add("han","text-2xl");
       if(d.to === "py") b.classList.add("text-lg");
       b.textContent = getValue(w,d.to);
-      if(learnMode && w.id === current.word.id) b.classList.add("learn-highlight");
+      if(w.id === current.word.id) learnCorrectBtn = b;   // remembered for revealAnswer(), not shown up front
       b.addEventListener("click",()=>answerStandard(w.id,b));
       els.choices.appendChild(b);
     });
@@ -1680,6 +1722,7 @@
     if(currentMode !== "falling" && currentMode !== "stroke") previousMode = currentMode;
     if(currentMode === "falling") stopFalling(false);
     if(currentMode === "stroke") cancelStrokeQuiz();
+    hideRevealedAnswer();
     currentMode = mode;
     recentPairs = [];
 
@@ -1906,7 +1949,10 @@
     }
   }
 
-  function levelThreshold(level){ if(level <= 1) return 0; return Math.round(90 * Math.pow(level-1,1.58)); }
+  // Doubled from the original 90: levelling up pauses the game for a
+  // breather, so each level should be a proper stretch of play, not a
+  // quick tap-through.
+  function levelThreshold(level){ if(level <= 1) return 0; return Math.round(180 * Math.pow(level-1,1.58)); }
   function levelBaseSpeed(level){ return .78 + .16 * Math.pow(level-1,1.12); }
   function timeBoost(){ return 1 + Math.min(.50,fall.elapsedMs/120000*.50); }
   function speedMultiplier(){ return levelBaseSpeed(fall.level) * timeBoost() * (1 + fall.penalty); }
@@ -1963,7 +2009,7 @@
     els.fallStartBtn.textContent = "Start";
     els.fallPauseBtn.disabled = true;
     els.fallPauseBtn.textContent = "Pause";
-    els.fallNextBtn.disabled = true;
+    els.fallLevelUpOverlay.hidden = true;
     setFallMessage(fallingIntroMessage(),"");
     updateFallingHud();
     updateProgress();
@@ -2016,6 +2062,7 @@
     fall.animationId = null;
     fall.running = false;
     fall.paused = false;
+    els.fallLevelUpOverlay.hidden = true;
     if(showOverlay) els.fallStartOverlay.classList.remove("hidden");
   }
 
@@ -2031,6 +2078,11 @@
       const add = Math.floor(fall.scoreRemainder);
       fall.points += add;
       fall.scoreRemainder -= add;
+    }
+    if(fall.points >= levelThreshold(fall.level+1)){
+      updateFallingHud();
+      triggerLevelUp();
+      return;
     }
     if(now-fall.lastSpawn >= spawnInterval()){
       spawnFallingChar();
@@ -2087,7 +2139,7 @@
     els.fallStartBtn.textContent = "Play again";
     els.fallPauseBtn.disabled = true;
     els.fallPauseBtn.textContent = "Pause";
-    els.fallNextBtn.disabled = true;
+    els.fallLevelUpOverlay.hidden = true;
     setFallMessage(`Game over — ${word.zh} means ${word.en} (${word.py}). Best score ${Math.floor(state.falling.highScore)}.`,"bad");
   }
 
@@ -2254,18 +2306,30 @@
     const span = Math.max(1,nextThreshold-currentThreshold);
     const progress = Math.max(0,Math.min(1,(fall.points-currentThreshold)/span));
     els.fallLevelProgress.style.width = `${progress*100}%`;
-    if(fall.points >= nextThreshold){
-      els.fallNextBtn.disabled = false;
-      els.fallLevelProgressText.textContent = `Level ${fall.level+1} ready.`;
-    }else{
-      els.fallNextBtn.disabled = true;
-      els.fallLevelProgressText.textContent = `Level ${fall.level+1} unlocks at ${nextThreshold} points.`;
-    }
+    els.fallLevelProgressText.textContent = fall.points >= nextThreshold
+      ? `Level ${fall.level+1} ready.`
+      : `Level ${fall.level+1} at ${nextThreshold} points.`;
   }
 
-  function nextFallingLevel(){
-    const needed = levelThreshold(fall.level+1);
-    if(fall.points < needed) return;
+  // Levelling up is a deliberate breather, not a race: the game pauses
+  // itself and shows a small modal rather than a button the student has
+  // to notice and tap while characters keep falling.
+  function triggerLevelUp(){
+    if(!fall.running || fall.paused) return;
+    fall.paused = true;
+    if(fall.animationId) cancelAnimationFrame(fall.animationId);
+    fall.animationId = null;
+    els.fallPauseBtn.textContent = "Resume";
+    els.fallPauseBtn.disabled = true;   // the modal's own button is how you continue
+    els.fallLevelUpTitle.textContent = `Level ${fall.level+1} unlocked!`;
+    els.fallLevelUpOverlay.hidden = false;
+    els.fallLevelUpContinueBtn.textContent = `Continue to Level ${fall.level+1}`;
+    setFallMessage("Level complete. Take a breather, then continue.","good");
+  }
+
+  function continueToNextLevel(){
+    if(els.fallLevelUpOverlay.hidden) return;
+    els.fallLevelUpOverlay.hidden = true;
     fall.level++;
     fall.penalty *= .45;
     state.falling.bestLevel = Math.max(state.falling.bestLevel,fall.level);
@@ -2274,6 +2338,11 @@
     updateFallingHud();
     updateProgress();
     saveState();
+    fall.paused = false;
+    els.fallPauseBtn.disabled = false;
+    els.fallPauseBtn.textContent = "Pause";
+    fall.lastFrame = performance.now();
+    fall.animationId = requestAnimationFrame(fallLoop);
   }
 
   function setFallMessage(text,type){
@@ -2345,7 +2414,7 @@
     stroke.mistakesThisTry = 0;
     stroke.correctStrokesThisTry = 0;
     const c = activeStrokeChar();
-    els.strokeStatus.textContent = "Watch the stroke order, then practise drawing it.";
+    els.strokeStatus.textContent = "Getting the grid ready…";
     if(typeof HanziWriter === "undefined"){
       els.strokeStatus.textContent = "Stroke practice needs an internet connection to load the writing library.";
       return;
@@ -2368,7 +2437,9 @@
         leniency:1.1,
         strokeAnimationSpeed:1.1, delayBetweenStrokes:260,
         showHintAfterMisses:2, highlightOnComplete:true, highlightCompleteColor:"#315b50",
-        onLoadCharDataSuccess:()=>{ els.strokeStatus.textContent = "Ready."; },
+        // Practice is the default the moment a character is ready — no
+        // Watch/Practice click needed before a student can start drawing.
+        onLoadCharDataSuccess:()=>{ practiceStroke(); },
         onLoadCharDataError:()=>{ els.strokeStatus.textContent = "Character data could not load. Check the internet connection."; }
       });
     }catch{
@@ -2389,7 +2460,7 @@
     cancelStrokeQuiz();
     els.strokeStatus.textContent = "Watch the strokes.";
     try{
-      stroke.writer.animateCharacter({ onComplete:()=>{ els.strokeStatus.textContent = "Ready to practise."; } });
+      stroke.writer.animateCharacter({ onComplete:()=>{ practiceStroke(); } });
     }catch{}
   }
 
@@ -2606,9 +2677,9 @@
     currentMode = state.lastMode;
     previousMode = (currentMode === "falling" || currentMode === "stroke") ? DEFAULT_MODE : currentMode;
     fallingTarget = state.fallingMode === "py" ? "py" : "en";
-    learnMode = false;
-    els.learnBtn.textContent = "Learn mode: Off";
-    els.learnBtn.classList.remove("ring-2","ring-gold");
+    learnMode = true;
+    els.learnBtn.textContent = "Learn mode: On";
+    els.learnBtn.classList.add("ring-2","ring-gold");
     recentPairs = [];
     current = null;
     stroke.wordIndex = 0;
@@ -3029,6 +3100,7 @@
   els.speakBtn.addEventListener("click",speakPrompt);
   els.chineseAudio.addEventListener("click",speakChinese);
   els.ukAudio.addEventListener("click",speakUKGuide);
+  els.revealAnswerBtn.addEventListener("click",revealAnswer);
   els.resetBtn.addEventListener("click",resetEverything);
   els.continueBtn.addEventListener("click",()=>{ window.scrollTo({top:0,behavior:"smooth"}); });
   els.modeBtns.forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
@@ -3038,7 +3110,7 @@
   });
   els.fallPauseBtn.addEventListener("click",pauseFalling);
   els.fallNewBtn.addEventListener("click",newFallingRun);
-  els.fallNextBtn.addEventListener("click",nextFallingLevel);
+  els.fallLevelUpContinueBtn.addEventListener("click",continueToNextLevel);
   els.fallModeEn.addEventListener("click",()=>setFallingTarget("en"));
   els.fallModePy.addEventListener("click",()=>setFallingTarget("py"));
   els.fallCloseBtn.addEventListener("click",()=>setMode(previousMode && MODES[previousMode] && previousMode!=="falling" && previousMode!=="stroke" ? previousMode : DEFAULT_MODE));
