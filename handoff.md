@@ -2,6 +2,44 @@
 
 Living project doc. Update after every session's changes.
 
+## 2026-09-11 — fix: level-up modal was permanently visible (deployed @28-29)
+
+James: the new Falling level-up modal (`#fallLevelUpOverlay`, added in @27)
+was stuck on screen from the moment Falling mode opened — before any
+points were even earned. **Cause:** the overlay was hidden with the
+native HTML `hidden` *attribute* (`el.hidden = true/false`), but the same
+element also carries Tailwind's `flex` class. `[hidden]{display:none}` is
+a user-agent-stylesheet rule; Tailwind's `.flex{display:flex}` is an
+author-stylesheet rule — **author always beats user-agent in the CSS
+cascade regardless of specificity**, so `flex` won every time and the
+`hidden` attribute did nothing. (`#fallStartOverlay`, the pre-existing
+overlay this was modelled on, avoids the trap by toggling Tailwind's own
+`.hidden` *class* via `classList.add/remove("hidden")` instead of the
+attribute — that's the pattern to copy for any future overlay here.)
+Fixed by switching `#fallLevelUpOverlay` to the same `classList`-based
+`hidden` toggle everywhere (markup + `triggerLevelUp`/
+`continueToNextLevel`/`resetFallingRun`/`stopFalling`/`gameOverFalling`).
+Verified in the browser: `getComputedStyle(...).display` is `none` on
+entering Falling mode and flips to `flex`/`none` correctly on toggle.
+
+While hunting for this, found the **same latent bug** in the sign-in
+modal's `#signinAuthRow` ("Not working? Open as account 2 / account 3") —
+it also mixes the `hidden` attribute with a `flex` class, so
+`configureSigninLinks()`'s `els.signinAuthRow.hidden = false/true` never
+actually did anything; the row would always render whenever the sign-in
+modal itself is shown. Fixed the same way (markup + both branches now
+`classList.add/remove("hidden")`). Lower real-world impact than the
+falling bug (the branch that should hide it is rare — `webAppUrl_()` has
+a hard-coded fallback so `data.webAppUrl` is almost always truthy) but
+worth fixing on the same pass. Deployed @29.
+
+**Rule of thumb for this file:** never mix the native `hidden` attribute
+with a `flex`/`grid`/`block` display class on the same element — use
+`classList.toggle("hidden", ...)` (Tailwind's class) instead, matching
+every other overlay/panel in this app. `els.foo.hidden = ...` is safe
+ONLY when that element carries no display utility class of its own
+(buttons/divs with no `flex`/`grid`/`block` in their class list).
+
 ## 2026-09-11 — reveal-answer, falling breaks, stroke auto-practice, Learn default (deployed @27)
 
 - **Learn mode no longer shows the answer up front.** `#learnAnswer` stays
