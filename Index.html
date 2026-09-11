@@ -329,7 +329,10 @@
           <section class="paper-grain rounded-3xl border border-goldsoft bg-paper p-3 shadow-paper sm:p-5">
             <div id="standardArea">
               <div class="mb-3 flex flex-col gap-2 text-sm text-smoke sm:flex-row sm:items-center sm:justify-between">
-                <span id="roundLabel" class="w-fit rounded-full border border-goldsoft bg-[#fffaf0] px-3 py-1.5 font-black text-ink">Quiz mode</span>
+                <div class="flex flex-wrap items-center gap-2">
+                  <span id="roundLabel" class="w-fit rounded-full border border-goldsoft bg-[#fffaf0] px-3 py-1.5 font-black text-ink">Quiz mode</span>
+                  <span id="batchLabel" hidden class="w-fit rounded-full border border-jade bg-[#e7f3ee] px-3 py-1.5 font-black text-jade2">Batch 1 of 8</span>
+                </div>
                 <span id="modeNote">3 correct answers per direction.</span>
               </div>
               <div class="rounded-2xl border border-goldsoft bg-[#fffdf8] p-4 text-center sm:p-6">
@@ -352,6 +355,13 @@
               <h2 class="text-2xl font-black sm:text-3xl">Mode complete</h2>
               <p id="completeText" class="mx-auto mt-2 max-w-xl leading-6 text-smoke"></p>
               <button id="continueBtn" type="button" class="mt-5 rounded-xl bg-cinnabar px-5 py-3 font-black text-white shadow-seal">Choose another mode</button>
+            </section>
+
+            <section id="batchCompleteArea" class="hidden py-10 text-center">
+              <div class="mx-auto mb-4 w-fit rounded-full bg-[#e7f3ee] p-4 text-4xl">🎉</div>
+              <h2 id="batchCompleteTitle" class="text-2xl font-black sm:text-3xl">Batch 2 of 8 unlocked!</h2>
+              <p id="batchCompleteText" class="mx-auto mt-2 max-w-xl leading-6 text-smoke"></p>
+              <button id="batchContinueBtn" type="button" class="mt-5 rounded-xl bg-jade px-5 py-3 font-black text-white shadow-seal">Continue</button>
             </section>
 
             <section id="fallingArea" class="hidden">
@@ -1088,7 +1098,13 @@
   const LAST_TOPIC_KEY = "chineseLearning:v1:lastTopic";
   const TARGET = 3;
 
-  let currentTopic, WORDS, STORE_KEY, ALL_STROKE_CHARS, CHAR_TO_WORD;
+  // Standard practice modes work through a unit 5 words at a time instead
+  // of dropping the whole word list on the student at once. Falling and
+  // Stroke are unaffected (Falling already samples a subset for its own
+  // gameplay reasons; Stroke's word-tab strip isn't a shuffled quiz bank).
+  const BATCH_SIZE = 5;
+
+  let currentTopic, WORDS, STORE_KEY, ALL_STROKE_CHARS, CHAR_TO_WORD, WORD_BATCHES;
 
   function loadTopic(topicId){
     currentTopic = CURRICULUM[topicId] ? topicId : "animals";
@@ -1097,6 +1113,9 @@
     ALL_STROKE_CHARS = [...new Set(WORDS.flatMap(w => Array.from(w.zh).filter(c => /[一-鿿]/.test(c))))];
     CHAR_TO_WORD = {};
     WORDS.forEach(w => Array.from(w.zh).forEach(c => { if(!CHAR_TO_WORD[c]) CHAR_TO_WORD[c] = w.id; }));
+    WORD_BATCHES = [];
+    for(let i = 0; i < WORDS.length; i += BATCH_SIZE) WORD_BATCHES.push(WORDS.slice(i, i + BATCH_SIZE));
+    if(!WORD_BATCHES.length) WORD_BATCHES.push([]);
   }
 
   function initialTopic(){
@@ -1237,11 +1256,13 @@
     modeBtns:$$(".modeBtn"),
     standardArea:$("#standardArea"), completeArea:$("#completeArea"),
     fallingArea:$("#fallingArea"), strokeArea:$("#strokeArea"),
-    roundLabel:$("#roundLabel"), modeNote:$("#modeNote"), direction:$("#direction"),
+    roundLabel:$("#roundLabel"), batchLabel:$("#batchLabel"), modeNote:$("#modeNote"), direction:$("#direction"),
     prompt:$("#prompt"), supportLine:$("#supportLine"), learnAnswer:$("#learnAnswer"),
     feedback:$("#feedback"), choices:$("#choices"),
     chineseAudio:$("#chineseAudio"), ukAudio:$("#ukAudio"), revealAnswerBtn:$("#revealAnswerBtn"),
     continueBtn:$("#continueBtn"), completeText:$("#completeText"),
+    batchCompleteArea:$("#batchCompleteArea"), batchCompleteTitle:$("#batchCompleteTitle"),
+    batchCompleteText:$("#batchCompleteText"), batchContinueBtn:$("#batchContinueBtn"),
     sideMode:$("#sideMode"), progressFill:$("#progressFill"),
     overallLabel:$("#overallLabel"), overallValue:$("#overallValue"),
     miniList:$("#miniList"), sideNote:$("#sideNote"), wordRows:$("#wordRows"),
@@ -1302,10 +1323,28 @@
       mistakes:Object.fromEntries(ALL_STROKE_CHARS.map(c => [c,0]))
     };
   }
+  // Per-mode batch progress: each standard mode works through its own
+  // sequence of 5-word batches (Mixed is harder, so it paces separately
+  // from e.g. Pinyin <-> Meaning on the same unit). `unlocked` is how many
+  // batches are open; `current` is the one being practiced right now.
+  function blankBatchProgress(){ return {unlocked:1, current:0}; }
+  function blankBatchState(){
+    return {zhpy:blankBatchProgress(), zhen:blankBatchProgress(), pyen:blankBatchProgress(), mixed:blankBatchProgress()};
+  }
+  function coerceBatchProgress(raw){
+    const totalBatches = Math.max(1, WORD_BATCHES.length);
+    const b = blankBatchProgress();
+    if(raw && typeof raw === "object"){
+      b.unlocked = Math.max(1, Math.min(totalBatches, Math.round(Number(raw.unlocked)) || 1));
+      b.current = Math.max(0, Math.min(b.unlocked - 1, Math.round(Number(raw.current)) || 0));
+    }
+    return b;
+  }
+
   function blankState(){
     return {
       scores:blankScores(), attempts:0, correct:0, lastMode:DEFAULT_MODE,
-      falling:blankFallingStats(), stroke:blankStrokeStats(),
+      falling:blankFallingStats(), stroke:blankStrokeStats(), batch:blankBatchState(),
       fallingMode:"en", timeStudiedMs:0, sessionCount:0, updatedAt:0
     };
   }
@@ -1323,6 +1362,9 @@
     base.attempts = Math.max(0,Number(raw.attempts)||0);
     base.correct = Math.max(0,Number(raw.correct)||0);
     base.lastMode = MODES[raw.lastMode] ? raw.lastMode : DEFAULT_MODE;
+    for(const m of Object.keys(base.batch)){
+      base.batch[m] = coerceBatchProgress(raw.batch && raw.batch[m]);
+    }
     if(raw.falling){
       base.falling.highScore = Math.max(0,Number(raw.falling.highScore)||0);
       base.falling.bestLevel = Math.max(1,Number(raw.falling.bestLevel)||1);
@@ -1520,6 +1562,19 @@
   }
   function dots(n){ return Array.from({length:TARGET},(_,i)=>i<n?"●":"○").join(""); }
 
+  // Batch helpers: each standard mode paces through WORD_BATCHES on its
+  // own (state.batch[currentMode]) so Mixed can be slower than Pinyin<->
+  // Meaning on the same unit without them interfering.
+  function activeBatchState(){ return state.batch[currentMode]; }
+  function activeBatchIndex(){ return Math.min(activeBatchState().current, WORD_BATCHES.length - 1); }
+  function activeBatchWords(){ return WORD_BATCHES[activeBatchIndex()] || []; }
+  function isLastBatch(){ return activeBatchIndex() >= WORD_BATCHES.length - 1; }
+  function updateBatchLabel(){
+    const multiBatch = WORD_BATCHES.length > 1;
+    els.batchLabel.classList.toggle("hidden", !multiBatch);
+    if(multiBatch) els.batchLabel.textContent = `Batch ${activeBatchIndex() + 1} of ${WORD_BATCHES.length}`;
+  }
+
   function weightedChoice(items){
     const weights = items.map(x => {
       const score = state.scores[x.id][x.dir];
@@ -1547,13 +1602,25 @@
 
   function chooseNext(){
     if(currentMode === "falling" || currentMode === "stroke") return;
+    const batchWords = activeBatchWords();
     const candidates = [];
-    for(const w of WORDS){
+    for(const w of batchWords){
       for(const d of modeDirs()){
         if(state.scores[w.id][d] < TARGET) candidates.push({id:w.id,dir:d});
       }
     }
-    if(!candidates.length){ showComplete(); return; }
+    if(!candidates.length){
+      if(!isLastBatch()){
+        const bs = activeBatchState();
+        bs.current++;
+        bs.unlocked = Math.max(bs.unlocked, bs.current + 1);
+        saveState();
+        showBatchComplete(bs.current);
+        return;
+      }
+      showComplete();
+      return;
+    }
     const chosen = weightedChoice(candidates);
     const word = WORDS.find(w=>w.id===chosen.id);
     current = {word, dir:chosen.dir, choices:pickChoiceWords(word, DIRECTIONS[chosen.dir].to)};
@@ -1561,6 +1628,17 @@
     if(recentPairs.length > 6) recentPairs.shift();
     locked = false;
     renderQuestion();
+  }
+
+  function showBatchComplete(newBatchIndex){
+    const words = WORD_BATCHES[newBatchIndex] || [];
+    els.standardArea.classList.add("hidden");
+    els.batchCompleteArea.classList.remove("hidden");
+    els.batchCompleteTitle.textContent = `Batch ${newBatchIndex + 1} of ${WORD_BATCHES.length} unlocked!`;
+    els.batchCompleteText.textContent = words.length
+      ? `Next up: ${words.map(w=>w.zh).join(" ")}`
+      : "Nice work.";
+    updateProgress();
   }
 
   function renderQuestion(){
@@ -1588,6 +1666,7 @@
     els.modeNote.textContent = learnMode
       ? "Stuck? Tap Reveal answer for a one-second peek. Practice taps do not count."
       : "3 correct answers per direction.";
+    updateBatchLabel();
     renderChoices();
     updateProgress();
   }
@@ -1740,6 +1819,7 @@
     });
 
     els.completeArea.classList.add("hidden");
+    els.batchCompleteArea.classList.add("hidden");
     els.standardArea.classList.add("hidden");
     els.fallingArea.classList.add("hidden");
     els.fallingArea.classList.remove("falling-fullscreen");
@@ -1834,9 +1914,12 @@
     els.overallLabel.textContent = "Completed";
     els.overallValue.textContent = `${done}/${WORDS.length}`;
     els.progressFill.style.width = `${done/WORDS.length*100}%`;
-    els.sideNote.textContent = HAS_BACKEND
+    const saveNote = HAS_BACKEND
       ? "Progress saves to your Bloomsbury account when signed in."
       : "Progress saves in this browser.";
+    els.sideNote.textContent = WORD_BATCHES.length > 1
+      ? `Working through Batch ${activeBatchIndex() + 1} of ${WORD_BATCHES.length} · new batches unlock as you master the current one. ${saveNote}`
+      : saveNote;
     if(!els.progressPanel.open) return;
     els.miniList.innerHTML = "";
     for(const w of WORDS){
@@ -1910,6 +1993,7 @@
     else if(currentMode === "stroke"){ openStrokeWord(0,0); }
     else{
       els.completeArea.classList.add("hidden");
+      els.batchCompleteArea.classList.add("hidden");
       els.standardArea.classList.remove("hidden");
       updateProgress();
       chooseNext();
@@ -3103,6 +3187,11 @@
   els.revealAnswerBtn.addEventListener("click",revealAnswer);
   els.resetBtn.addEventListener("click",resetEverything);
   els.continueBtn.addEventListener("click",()=>{ window.scrollTo({top:0,behavior:"smooth"}); });
+  els.batchContinueBtn.addEventListener("click",()=>{
+    els.batchCompleteArea.classList.add("hidden");
+    els.standardArea.classList.remove("hidden");
+    chooseNext();
+  });
   els.modeBtns.forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
   els.fallStartBtn.addEventListener("click",()=>{
     if(fall.over){ resetFallingRun(false); }

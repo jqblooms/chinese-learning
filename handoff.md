@@ -2,6 +2,48 @@
 
 Living project doc. Update after every session's changes.
 
+## 2026-09-11 — quiz/learn modes work through batches of 5 words (deployed @30)
+
+James: most units are 29-41 words (only `animals`=9 and `y7_foundation`=18
+are small) and students faced the whole shuffled word list at once in
+every standard practice mode. Added sequential batching, confirmed with
+James: **locked/sequential** (must master the current batch before the
+next unlocks) and **quiz/learn modes only** (Falling already samples a
+subset for gameplay; Stroke's word-tab strip stays as is).
+
+- **`BATCH_SIZE = 5`.** `loadTopic` splits `WORDS` into `WORD_BATCHES`
+  (last batch may be short — e.g. animals' 9 words → `[5,4]`).
+- **Batch progress is per-mode**, not per-topic: `state.batch = {zhpy,
+  zhen, pyen, mixed}`, each `{unlocked, current}`. Mixed (6 directions) is
+  harder than e.g. Pinyin↔Meaning (2 directions), so it paces through
+  batches independently on the same unit. Added to `blankState()` /
+  `coerceState()` (`coerceBatchProgress`, clamped to `WORD_BATCHES.length`
+  — computed fresh per topic in `loadTopic`, before any `coerceState`
+  call). No server-side change needed: `mastery` is stored as an opaque
+  JSON blob (`Storage.gs`'s `writeMasteryForEmail_`), so the new `batch`
+  field just rides along.
+- **`chooseNext()`** now builds its candidate pool from
+  `activeBatchWords()` (`WORD_BATCHES[state.batch[currentMode].current]`)
+  instead of all of `WORDS`. Distractors in `pickChoiceWords` still draw
+  from the whole topic for variety — only the *tested* pool is batch
+  scoped. When a batch's candidates run out: if it's not the last batch,
+  advance (`unlocked`/`current`++, save, show `#batchCompleteArea` — a
+  small "Batch 2 of 8 unlocked! Next up: 你好 谢谢 …" screen with a
+  Continue button, styled like `#completeArea` but jade instead of
+  cinnabar); if it *is* the last batch, `showComplete()` fires exactly as
+  before (whole-mode-complete screen, unchanged).
+- **UI**: a `#batchLabel` pill next to the Quiz/Learn round label reads
+  "Batch N of M" (hidden for topics with only one batch); the Progress
+  panel's `sideNote` mentions the current batch too. The mini-list inside
+  Progress still lists every word in the topic (unchanged) — batching
+  only restricts what the live quiz draws from, not the reference view.
+- Verified by seeding `localStorage` with batch-1 words already mastered
+  and reloading: correctly detects the exhausted batch, unlocks +
+  displays batch 2, and per-mode independence holds (advancing `zhpy`'s
+  batch left `zhen`/`pyen`/`mixed` at batch 1). Also verified full-topic
+  completion still fires the normal "Mode complete" screen when the last
+  batch is exhausted.
+
 ## 2026-09-11 — fix: level-up modal was permanently visible (deployed @28-29)
 
 James: the new Falling level-up modal (`#fallLevelUpOverlay`, added in @27)
